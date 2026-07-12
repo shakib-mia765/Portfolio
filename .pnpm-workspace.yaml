@@ -1,0 +1,84 @@
+# ==============================================================================
+# TITLE:       pnpm-workspace.yaml
+# DESCRIPTION: Unified Monorepo Topological Blueprint & Dependency Boundary Engine
+# ARCHITECT:   L15 Principle Ultra-FAANG Systems Architect
+# EXPERIENCE:  50+ Years Legacy Systems & Hyper-scale Infrastructure Philosophy
+# COMPLIANCE:  PNPM Spec v8+, Domain-Driven Monorepo Isolation, Clean Architecture
+# ==============================================================================
+# This configuration defines the strict topological boundaries of the enterprise
+# monorepo. It isolates business domains while facilitating zero-copy dependency
+# sharing via hard-linked local packages.
+# ==============================================================================
+
+packages:
+  # ==========================================================================
+  # 1. APPLICATION INGRESS & PRESENTATION LAYER (USER INTERFACE)
+  # ==========================================================================
+  # These are the edge delivery points of the architecture. They consume the
+  # underlying shared core/domain layers and remain completely decoupled.
+  # --------------------------------------------------------------------------
+  - 'apps/portfolio-web'        # Next.js/Vite SSR production client dashboard
+  - 'apps/portfolio-admin'      # Strictly isolated CMS / telemetry control panel
+  - 'apps/documentation'        # Technical system specs, architecture graph & docs
+
+  # ==========================================================================
+  # 2. APPLICATION CORE / BACKEND RUNTIME CORE
+  # ==========================================================================
+  # Microservices and server engines executing business use cases, event streams,
+  # and high-frequency network bindings.
+  # --------------------------------------------------------------------------
+  - 'services/gateway-ingress'  # Reverse proxy, rate limiter & global routing edge
+  - 'services/portfolio-api'    # Main high-performance NestJS / Express API core
+  - 'services/analytics-worker' # High-volume transactional data parsing engine
+
+  # ==========================================================================
+  # 3. SHARED DOMAIN CORE & BUSINESS LOGIC (THE HEART OF CLEAN ARCHITECTURE)
+  # ==========================================================================
+  # Enterprise Core Rules. These modules have ZERO external runtime dependencies
+  # on web frameworks or databases. They represent pure domain logic.
+  # --------------------------------------------------------------------------
+  - 'packages/domain-core'      # Pure TypeScript pure enterprise entities & models
+  - 'packages/use-cases'        # Isolated application service flow controllers
+
+  # ==========================================================================
+  # 4. INFRASTRUCTURE & DATA ACCESS LAYER (ADAPTERS)
+  # ==========================================================================
+  # Secondary adapters implementing database connection pooling, third-party
+  # network proxies, cache layers, and logging sinks.
+  # --------------------------------------------------------------------------
+  - 'packages/infra-database'   # Prisma / TypeORM operational state abstraction
+  - 'packages/infra-cache'      # Shared Redis/Memcached cluster isolation wrappers
+  - 'packages/infra-logger'     # Structured Winston/Pino telemetry streaming hub
+
+  # ==========================================================================
+  # 5. CROSS-CUTTING COMPONENT UTILITIES & DESIGN SYSTEM
+  # ==========================================================================
+  # Reusable atomic architectural primitives consumed globally by apps/ and services/
+  # --------------------------------------------------------------------------
+  - 'packages/design-system'    # Atomic UI design system components (Tailwind/Shadcn)
+  - 'packages/shared-utils'     # Pure deterministic cryptographic helper pipelines
+  - 'packages/typescript-config'# Global frozen immutable base tsconfig baselines
+  - 'packages/eslint-config'    # Unified static code analysis syntax enforcement
+
+  # ==========================================================================
+  # 6. SYSTEM AUTOMATION & DEV-OPS TOOLING LAYER
+  # ==========================================================================
+  # Orchestration, code generation, database seeding tools, and local testing sandboxes.
+  # --------------------------------------------------------------------------
+  - 'scripts/**'                # All management modules, orchestrators, and scripts
+  - 'tooling/e2e-testing'       # Playwright / Cypress integration testing sandbox
+  - 'tooling/code-generators'   # Automated domain boilerplate template engines
+
+# ==============================================================================
+# CATALOG INJECTIONS & DISCOVERY POLICIES
+# ==============================================================================
+# Explicit safety exclusions to prevent the package manager from traversing
+# unauthorized directories, ephemeral caches, or virtualized sandboxes.
+# ==============================================================================
+exclude:
+  - '**/node_modules/**'
+  - '**/dist/**'
+  - '**/.next/**'
+  - '**/.turbo/**'
+  - '**/coverage/**'
+  - '**/.cache/**'
