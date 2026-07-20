@@ -149,6 +149,13 @@ The following tree preserves the repository structure and naming supplied for th
 ```text
 Portfolio/
 │
+├── .github/
+│   └── workflows/
+│       ├── ci.yml
+│       ├── cd.yml
+│       ├── security-scan.yml
+│       └── lighthouse.yml
+│
 ├── infra/
 │   ├── k8s/
 │   │   ├── deployment.yaml
@@ -187,122 +194,32 @@ Portfolio/
 │   │   └── vite.svg
 │   │
 │   ├── components/
-│   │   ├── features/
-│   │   │   ├── caseStudies/
-│   │   │   │   ├── components/
-│   │   │   │   │   ├── ArchitectureBreakdown.jsx
-│   │   │   │   │   ├── CaseStudyCard.jsx
-│   │   │   │   │   ├── CaseStudyDetails.jsx
-│   │   │   │   │   ├── LessonsLearned.jsx
-│   │   │   │   │   ├── ProblemStatement.jsx
-│   │   │   │   │   ├── ScalingStrategy.jsx
-│   │   │   │   │   ├── SolutionOverview.jsx
-│   │   │   │   │   └── TradeOffAnalysis.jsx
-│   │   │   │   ├── hooks/
-│   │   │   │   │   ├── useAsyncPipeline.js
-│   │   │   │   │   ├── useDebounceState.js
-│   │   │   │   │   └── useEventStream.js
-│   │   │   │   ├── services/
-│   │   │   │   │   ├── ApiClient.js
-│   │   │   │   │   ├── CacheManager.js
-│   │   │   │   │   └── TelemetryEngine.js
-│   │   │   │   ├── CaseStudiesHyperscaleOperationalEngine.jsx
-│   │   │   │   └── CaseStudiesPage.jsx
-│   │   │   │
-│   │   │   ├── certifications/
-│   │   │   │   ├── components/
-│   │   │   │   │   ├── CertificateViewer.jsx
-│   │   │   │   │   ├── CertificationCard.jsx
-│   │   │   │   │   ├── CertificationDetails.jsx
-│   │   │   │   │   ├── SkillsFromCertification.jsx
-│   │   │   │   │   └── VerificationLink.jsx
-│   │   │   │   ├── hooks/
-│   │   │   │   │   ├── useClusterMatrix.js
-│   │   │   │   │   ├── useQuantumDebounce.js
-│   │   │   │   │   ├── useTelemetryPipeline.js
-│   │   │   │   │   └── useVirtualScrollManager.js
-│   │   │   │   ├── services/
-│   │   │   │   │   ├── EdgeCacheTelemetry.service.js
-│   │   │   │   │   ├── LoggerConsole.service.js
-│   │   │   │   │   ├── MultiTenantInversion.service.js
-│   │   │   │   │   ├── SecurityAuthority.service.js
-│   │   │   │   │   └── certification.manifest.json
-│   │   │   │   ├── CertificationsHyperscaleEnterpriseRouter.jsx
-│   │   │   │   └── CertificationsPage.jsx
-│   │   │   │
-│   │   │   ├── experience/
-│   │   │   │   ├── components/
-│   │   │   │   │   ├── AchievementList.jsx
-│   │   │   │   │   ├── ExperienceCard.jsx
-│   │   │   │   │   ├── ExperienceTimeline.jsx
-│   │   │   │   │   ├── ImpactMetrics.jsx
-│   │   │   │   │   ├── RoleDetails.jsx
-│   │   │   │   │   └── TechUsed.jsx
-│   │   │   │   ├── hooks/
-│   │   │   │   │   ├── useExperience.js
-│   │   │   │   │   └── useExperienceFilter.js
-│   │   │   │   ├── services/
-│   │   │   │   │   ├── experienceAPI.js
-│   │   │   │   │   ├── experienceData.json
-│   │   │   │   │   └── experienceTelemetry.js
-│   │   │   │   ├── ExperienceDashboard.jsx
-│   │   │   │   └── ExperiencePage.jsx
-│   │   │   │
-│   │   │   ├── projects/
-│   │   │   │   ├── components/
-│   │   │   │   │   ├── ProjectArchitecture.jsx
-│   │   │   │   │   ├── ProjectCard.jsx
-│   │   │   │   │   ├── ProjectDetails.jsx
-│   │   │   │   │   ├── ProjectFilters.jsx
-│   │   │   │   │   ├── ProjectGallery.jsx
-│   │   │   │   │   ├── ProjectGitHub.jsx
-│   │   │   │   │   ├── ProjectGrid.jsx
-│   │   │   │   │   ├── ProjectLiveDemo.jsx
-│   │   │   │   │   ├── ProjectMetrics.jsx
-│   │   │   │   │   ├── ProjectSearch.jsx
-│   │   │   │   │   └── ProjectTechStack.jsx
-│   │   │   │   ├── hooks/
-│   │   │   │   │   └── useProjects.js
-│   │   │   │   ├── services/
-│   │   │   │   │   └── projectAPI.js
-│   │   │   │   ├── ProjectsOperationalFabric.jsx
-│   │   │   │   └── ProjectsPage.jsx
-│   │   │   │
-│   │   │   └── skills/
-│   │   │       ├── components/
-│   │   │       │   ├── LearningTimeline.jsx
-│   │   │       │   ├── SkillCard.jsx
-│   │   │       │   ├── SkillCategory.jsx
-│   │   │       │   ├── SkillGraph.jsx
-│   │   │       │   ├── SkillProgress.jsx
-│   │   │       │   └── TechStackVisualizer.jsx
-│   │   │       ├── hooks/
-│   │   │       │   └── usePrismaProfiler.js
-│   │   │       ├── services/
-│   │   │       │   ├── RegistryIngress.js
-│   │   │       │   └── SchemaValidator.js
-│   │   │       ├── SkillsPage.jsx
-│   │   │       └── SkillsQuantumOperationalMatrix.jsx
-│   │   │
-│   │   ├── layout/
-│   │   │   ├── footer.jsx
-│   │   │   ├── layout-kernel-injector.sh
-│   │   │   ├── navbar.jsx
-│   │   │   └── sidebar.jsx
-│   │   │
-│   │   ├── ui/
-│   │   │   ├── card.jsx
-│   │   │   ├── contact.jsx
-│   │   │   ├── dialog.jsx
-│   │   │   └── input.jsx
-│   │   │
-│   │   ├── DockerFile
-│   │   ├── button.jsx
-│   │   ├── next.config.js
-│   │   ├── server.js
-│   │   ├── tsconfig.json
-│   │   └── workspace-core-injector.sh
 │   │
+│   ├── features/
+│   │   ├── caseStudies/
+│   │   ├── certifications/
+│   │   ├── experience/
+│   │   ├── projects/
+│   │   └── skills/
+│   │
+│   ├── layout/
+│   │   ├── footer.jsx
+│   │   ├── navbar.jsx
+│   │   ├── sidebar.jsx
+│   │   └── layout-kernel-injector.sh
+│   │
+│   ├── ui/
+│   │   ├── button.jsx
+│   │   ├── card.jsx
+│   │   ├── contact.jsx
+│   │   ├── dialog.jsx
+│   │   └── input.jsx
+│   │
+│   ├── DockerFile
+│   ├── next.config.js
+│   ├── server.js
+│   ├── tsconfig.json
+│   ├── workspace-core-injector.sh
 │   ├── App.css
 │   ├── App.jsx
 │   ├── index.css
@@ -312,13 +229,16 @@ Portfolio/
 │   ├── e2e/
 │   │   ├── AuthenticationMocks.ts
 │   │   └── playwright.config.js
+│   │
 │   ├── integration/
 │   │   ├── NodeExpressIngress.spec.ts
 │   │   ├── PostgresConnectionPool.spec.ts
 │   │   └── PrismaInfraPipeline.spec.ts
+│   │
 │   ├── unit/
 │   │   ├── ReduxGlobalSlices.test.ts
 │   │   └── RegistryIngress.test.js
+│   │
 │   └── UnifiedEnterpriseCluster.spec.ts
 │
 ├── .docker-compose.yml
