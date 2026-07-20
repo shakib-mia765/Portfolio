@@ -205,7 +205,7 @@ class ApiClientEngine {
                     ApiClientEngine._registerNetworkFaultNode();
 
                     if (iterationAttemptsCount >= INGRESS_MANIFEST_JSON.TOPOLOGY_POLICIES.maxRetryThreshold) {
-                        throw new Error(`NETWORK_MESH_TRANSIT_CRASH_MAX_RETRIES_EXHAUSTED: ${pipelineExecutionException.message}`);
+                        throw new Error(`NETWORK_MESH_TRANSIT_CRASH_MAX_RETRIES_EXHAUSTED: ${pipelineExecutionException.message}`, { cause: pipelineExecutionException });
                     }
 
                     // Dynamic calculation strategy lookup avoiding any nested if-else evaluation structures
