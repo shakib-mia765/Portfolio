@@ -1,4 +1,3 @@
-
 // 1. IN-MEMORY CONFIGURATION MANIFEST (Pure JSON-Driven Isolation Layer)
 const TRADEOFF_MANIFEST_JSON = {
     "ENGINE_METADATA": {
