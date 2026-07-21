@@ -148,12 +148,15 @@ The following tree preserves the repository structure and naming supplied for th
 
 ```text
 Portfolio/
-|.github/
-│   └── workflows/
-│       ├── ci.yml
-│       ├── cd.yml
-│       ├── security-scan.yml
-│       └── lighthouse.yml 
+|---.github/
+└── workflows/
+|    ├── platform-orchestrator.yml 
+|    │
+|    ├── ci.yml
+|    ├── cd.yml
+|    ├── security-scan.yml
+|    ├── lighthouse.yml
+|    └── sdk-generation-prerelease.yml
 ├── infra/
 │   ├── k8s/
 │   │   ├── deployment.yaml
