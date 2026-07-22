@@ -1,12 +1,18 @@
+export { prisma } from "./client.js";
 
-export const PERSISTENCE_DOMAIN_BOUNDARIES = {
-  PORTFOLIO: 'PORTFOLIO_PERSISTENCE_BOUND',
-  ECOMMERCE: 'ECOMMERCE_GATEWAY_BOUND',
-  AI_PLATFORM: 'AI_INFERENCE_PERSISTENCE_BOUND',
-  CHAT_CORE: 'CHAT_STREAM_PERSISTENCE_BOUND',
-  DASHBOARD: 'DASHBOARD_ANALYTICS_BOUND',
-} as const;
+export {
+  apiSuccess,
+  apiError,
+  paginatedResponse,
+  validationError,
+  notFoundError,
+  unauthorizedError,
+  forbiddenError,
+} from "./api response/index.js";
 
-export type PersistenceDomainBoundary =
-  typeof PERSISTENCE_DOMAIN_BOUNDARIES[keyof typeof PERSISTENCE_DOMAIN_BOUNDARIES];
-} from '@prisma/client';
+export {
+  validateSchema,
+  assertValid,
+  isValidationError,
+  createValidationError,
+} from "./api response/validation.js";
