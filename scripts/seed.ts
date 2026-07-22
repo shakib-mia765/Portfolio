@@ -8,7 +8,6 @@ const prisma = new PrismaClient({
 });
 const environment =
   process.env.NODE_ENV ?? "development";
-
 const seedRegistry = {
   users: [
     {
