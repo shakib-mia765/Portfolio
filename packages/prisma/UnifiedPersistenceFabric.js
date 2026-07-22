@@ -1,20 +1,3 @@
-/**
- * Unified Persistence Fabric
- *
- * Enterprise Prisma Persistence Gateway
- *
- * Responsibilities:
- * - Database orchestration
- * - Transaction boundary
- * - Validation pipeline
- * - Error normalization
- * - Execution telemetry
- *
- * Architecture:
- * Clean Architecture
- * Dependency Injection
- * Domain Isolation
- */
 
 import prisma from "./client.js";
 
