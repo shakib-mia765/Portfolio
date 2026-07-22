@@ -130,8 +130,6 @@ class UnifiedPersistenceFabric {
 
   }
 
-
-
   async transaction(
     callback,
     options = {},
@@ -172,6 +170,5 @@ class UnifiedPersistenceFabric {
   }
 
 }
-
 
 export default UnifiedPersistenceFabric;
