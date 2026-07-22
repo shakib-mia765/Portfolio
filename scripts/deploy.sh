@@ -1,175 +1,298 @@
 #!/usr/bin/env bash
 
-# =========================================================================
-# @file deploy.sh
-# @description Principle-Level Ultra-FAANG Infrastructure Deployment Pipeline.
-# @architecture Microservices Ingress Orchestrator & Multi-Project Container Router
-# @features Zero-Downtime Blue-Green Concept, Auto-Rollback, Prisma Infra Sync
-# =========================================================================
+set -Eeuo pipefail
 
-# Strict Mode Execution - Any single failure breaks pipeline execution early
-set -eo pipefail
 
-# =========================================================================
-# 1. IMMUTABLE ARCHITECTURE ENVIRONMENT CONSTANTS
-# =========================================================================
-readonly ENVIRONMENT="${NODE_ENV:-production}"
-readonly DEPLOYMENT_TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-readonly REQUIRED_SYSTEM_ENGINES=("docker" "docker-compose" "node" "git")
+# ============================================================
+# Production Deployment Controller
+#
+# Responsibilities:
+# - Kubernetes deployment orchestration
+# - Immutable manifest delivery
+# - Zero downtime rollout
+# - Automatic rollback protection
+# - Production safety validation
+#
+# Architecture:
+# - GitOps Compatible
+# - Kubernetes Native
+# - Enterprise Operations Ready
+# ============================================================
 
-# Domain Application Registry Grid (Map Simulation Array)
-readonly TARGET_APPLICATION_NODES=(
-  "proj_ecommerce_001:Fullstack-ECommerce:apps/ecommerce/web"
-  "proj_portfolio_002:UI-UX-Portfolio:apps/portfolio"
-  "proj_dashboard_003:Analytics-Dashboard:apps/dashboard"
-  "proj_chat_004:Realtime-Chat-App:apps/chat-app"
-  "proj_ai_app_005:AI-Fullstack-Engine:apps/ai-engine"
-)
 
-# Backend Console Logging Styles Matrix (Mimicking Tailwind/Ansi Core)
-readonly LOG_INFO="\033[1;34m[INFO]\033[0m"
-readonly LOG_SUCCESS="\033[1;32m[SUCCESS]\033[0m"
-readonly LOG_WARN="\033[1;33m[WARN]\033[0m"
-readonly LOG_CRITICAL="\033[1;31m[CRITICAL FAILURE]\033[0m"
+ENVIRONMENT="${ENVIRONMENT:-production}"
+NAMESPACE="${NAMESPACE:-production}"
 
-# =========================================================================
-# 2. RUNTIME TELEMETRY ENGINE & INTERCEPTOR PIPELINES (Functions)
-# =========================================================================
+APP_NAME="${APP_NAME:-ultrafaang-portfolio}"
 
-log_message() {
-  local type="$1"
-  local message="$2"
-  echo -e "${type} $(date +'%Y-%m-%d %H:%M:%S') - ${message}"
+K8S_DIR="./infra/k8s/overlays/${ENVIRONMENT}"
+
+BUILD_DIR="./build"
+
+TIMEOUT="${DEPLOY_TIMEOUT:-300s}"
+
+RELEASE_ID="${GITHUB_SHA:-local}"
+
+MANIFEST_FILE="${BUILD_DIR}/${ENVIRONMENT}-${RELEASE_ID}.yaml"
+
+
+
+timestamp() {
+  date +"%Y-%m-%d %H:%M:%S"
 }
 
-/**
- * Gatekeeper Assertion: Verify system prerequisites and environment health
- */
-assert_system_readiness() {
-  log_message "${LOG_INFO}" "Initiating bare-metal kernel orchestration check..."
-  
-  for engine in "${REQUIRED_SYSTEM_ENGINES[@]}"; do
-    if ! command -v "$engine" &> /dev/null; then
-      log_message "${LOG_CRITICAL}" "System prerequisite dependency [${engine}] is missing. Aborting deployment pipeline."
-      exit 1
-    fi
-  done
-  log_message "${LOG_SUCCESS}" "All binary execution engines validated successfully."
+
+
+log() {
+  echo "$(timestamp) [INFO] $1"
 }
 
-/**
- * Load and validate runtime environment parameters (.env Schema Verification)
- */
-assert_environment_integrity() {
-  log_message "${LOG_INFO}" "Validating cryptographic secrets and .env integrity bounds..."
-  if [ ! -f ".env" ]; then
-    log_message "${LOG_CRITICAL}" "Root level environment file '.env' is missing. Deploy abort triggered."
-    exit 1
-  fi
-  # Source variables into memory safely
-  # shellcheck source=/dev/null
-  source .env
-  log_message "${LOG_SUCCESS}" "Environment configurations synced into shell execution runtime context."
+
+
+warn() {
+  echo "$(timestamp) [WARN] $1"
 }
 
-/**
- * Execute Database Prisma Migration & Schema Ingress Infras
- */
-orchestrate_database_layer() {
-  log_message "${LOG_INFO}" "Executing Prisma Infrastructure Engine & Schema migrations..."
-  
-  # Run non-blocking migration schema deployment asynchronously via Promises simulation
-  if [ -f "prisma/schema.prisma" ]; then
-    npx prisma migrate deploy || {
-      log_message "${LOG_CRITICAL}" "Prisma Database migration layer failed to reconcile state. Triggering emergency break."
-      exit 1
-    }
-    npx prisma generate
-    log_message "${LOG_SUCCESS}" "Prisma persistence models successfully migrated and synchronized to active database engines."
-  else
-    log_message "${LOG_WARN}" "Prisma schema missing at root container. Skipping automated db migration step."
-  fi
+
+
+fail() {
+  echo "$(timestamp) [ERROR] $1"
+  exit 1
 }
 
-/**
- * Containerized Microservices Building Pipeline
- */
-build_and_route_containers() {
-  log_message "${LOG_INFO}" "Compiling high-density production bundles for the 5 UltraGod application kernels..."
 
-  # Loop through target applications array mappings
-  for application_node in "${TARGET_APPLICATION_NODES[@]}"; do
-    IFS=":" read -r app_id app_name app_path <<< "$application_node"
-    
-    log_message "${LOG_INFO}" "Processing Node: [${app_name}] target path: [${app_path}]"
-    
-    # Executing localized build steps inside decoupled targets
-    if [ -d "$app_path" ] || [ -f "docker-compose.yml" ]; then
-      # Simulating high-throughput system builds using multi-stage caching docker engines
-      docker compose build --no-cache "${app_name,,}" || {
-        log_message "${LOG_CRITICAL}" "Compilation or container build exception caught on node [${app_name}]."
-        return 1
-      }
-      log_message "${LOG_SUCCESS}" "Node [${app_name}] artifact bundled into immutable image stream."
-    else
-      log_message "${LOG_WARN}" "Source directories for [${app_name}] not found. Skipping continuous build routing."
-    fi
-  done
+
+rollback() {
+
+  warn "Deployment failed. Executing rollback"
+
+
+  kubectl rollout undo \
+    deployment/"$APP_NAME" \
+    -n "$NAMESPACE" \
+    || warn "Rollback failed"
+
+
+
 }
 
-/**
- * Live Service Swap Engine (Zero-Downtime Container Lifecycles)
- */
-execute_live_cluster_ingress() {
-  log_message "${LOG_INFO}" "Executing blue-green swap over live application infrastructure..."
-  
-  # Spawning microservice fabrics smoothly
-  docker compose up -d --remove-orphans || {
-    log_message "${LOG_CRITICAL}" "Cluster state allocation failed during active ingress swap."
-    exit 1
-  }
-  
-  log_message "${LOG_SUCCESS}" "Application load-balancer routing configurations actively deployed."
+
+trap rollback ERR
+
+
+
+require_command() {
+
+  command -v "$1" >/dev/null 2>&1 \
+    || fail "Missing dependency: $1"
+
 }
 
-/**
- * Garbage Collection & Memory Pruning Engine
- */
-prune_stale_system_assets() {
-  log_message "${LOG_INFO}" "Purging volatile compilation caches and dangling image hashes..."
-  docker image prune -f
-  log_message "${LOG_SUCCESS}" "System hardware resource profiles optimized. Volatile memory leak prevention complete."
+
+
+check_dependencies() {
+
+  log "Checking required tools"
+
+
+  require_command kubectl
+
 }
 
-# =========================================================================
-# 3. KERNEL EXECUTION MAIN FLOW
-# =========================================================================
-main_deployment_flow() {
-  echo -e "\n==================================================================="
-  log_message "${LOG_INFO}" "STARTING ULTRA-FAANG DISTRIBUTION PIPELINE [TIMESTAMP: ${DEPLOYMENT_TIMESTAMP}]"
-  echo -e "===================================================================\n"
 
-  assert_system_readiness
-  assert_environment_integrity
-  orchestrate_database_layer
-  
-  # Execution wrapper block with implicit fallback rollback router
-  if ! build_and_route_containers; then
-    echo -e "\n"
-    log_message "${LOG_CRITICAL}" "CRITICAL ERROR DETECTED DURING PIPELINE INGRESS. INITIALIZING CRASH RECOVERY ROLLBACK SEQUENCE..."
-    # Microservices crash rollback concept
-    docker compose stop
-    log_message "${LOG_WARN}" "Active production state rolled back to safe baseline configuration images."
-    exit 1
+
+check_context() {
+
+  log "Validating cluster context"
+
+
+  CONTEXT=$(kubectl config current-context)
+
+
+  log "Cluster: $CONTEXT"
+
+
+
+  if [[ "$ENVIRONMENT" == "production" ]] &&
+     [[ "$CONTEXT" != *"prod"* ]]; then
+
+    fail "Production deployment blocked: invalid cluster"
+
   fi
 
-  execute_live_cluster_ingress
-  prune_stale_system_assets
 
-  echo -e "\n==================================================================="
-  log_message "${LOG_SUCCESS}" "DEPLOYMENT COMPLETED FOR ALL 5 INTEGRATED PLATFORMS IN SYSTEM CLOUD ENVIRONMENT"
-  echo -e "===================================================================\n"
 }
 
-# Fire up pipeline engine initialization immediately
-main_deployment_flow
+
+
+validate_namespace() {
+
+  log "Checking namespace"
+
+
+  kubectl get namespace "$NAMESPACE" \
+    >/dev/null \
+    || fail "Namespace does not exist: $NAMESPACE"
+
+
+}
+
+
+
+validate_overlay() {
+
+  log "Validating Kustomize overlay"
+
+
+  [[ -d "$K8S_DIR" ]] \
+    || fail "Missing overlay: $K8S_DIR"
+
+
+
+  kubectl kustomize "$K8S_DIR" \
+    >/dev/null
+
+
+}
+
+
+
+render_manifest() {
+
+  log "Generating immutable manifest"
+
+
+  mkdir -p "$BUILD_DIR"
+
+
+
+  kubectl kustomize "$K8S_DIR" \
+    > "$MANIFEST_FILE"
+
+
+
+  log "Manifest created: $MANIFEST_FILE"
+
+}
+
+
+
+validate_manifest() {
+
+  log "Running Kubernetes validation"
+
+
+  kubectl apply \
+    --dry-run=server \
+    -f "$MANIFEST_FILE"
+
+
+
+}
+
+
+
+deploy_application() {
+
+  log "Deploying release: $RELEASE_ID"
+
+
+
+  kubectl apply \
+    -f "$MANIFEST_FILE" \
+    -n "$NAMESPACE"
+
+
+
+}
+
+
+
+verify_rollout() {
+
+  log "Waiting for rollout"
+
+
+
+  kubectl rollout status \
+    deployment/"$APP_NAME" \
+    -n "$NAMESPACE" \
+    --timeout="$TIMEOUT"
+
+
+
+}
+
+
+
+health_check() {
+
+  log "Running health verification"
+
+
+  kubectl get pods \
+    -n "$NAMESPACE" \
+    -l app.kubernetes.io/name="$APP_NAME"
+
+
+
+  kubectl rollout history \
+    deployment/"$APP_NAME" \
+    -n "$NAMESPACE"
+
+
+
+}
+
+
+
+summary() {
+
+  echo ""
+  echo "=============================="
+  echo " Deployment Summary"
+  echo "=============================="
+  echo "Environment : $ENVIRONMENT"
+  echo "Namespace   : $NAMESPACE"
+  echo "Application : $APP_NAME"
+  echo "Release     : $RELEASE_ID"
+  echo "=============================="
+  echo ""
+
+}
+
+
+
+main() {
+
+  log "Starting production deployment"
+
+
+  check_dependencies
+
+  check_context
+
+  validate_namespace
+
+  validate_overlay
+
+  render_manifest
+
+  validate_manifest
+
+  deploy_application
+
+  verify_rollout
+
+  health_check
+
+  summary
+
+
+  log "Deployment completed successfully 🚀"
+
+}
+
+
+
+main "$@"
