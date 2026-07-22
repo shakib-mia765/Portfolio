@@ -1,67 +1,49 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# ==========================================
-# 1. METADATA & ORCHESTRATION CONTEXT
-# ==========================================
 namespace: production
+
 namePrefix: ultrafaang-
 nameSuffix: -v2
 
 commonLabels:
   app.kubernetes.io/part-of: ultrafaang-portfolio
-  app.kubernetes.io/managed-by: gitops-argocd
-  app.kubernetes.io/tier: enterprise-core
-  orchestration.level: ultragod-l15
-  billing.center: portfolio-infra
+  app.kubernetes.io/managed-by: argocd
+  app.kubernetes.io/tier: production
+  app.kubernetes.io/component: backend
 
 commonAnnotations:
-  checksum/infrastructure.version: "2026.7.10"
-  iam.amazonaws.com/role: arn:aws:iam::123456789012:role/ultragod-k8s-irsa
-  ops.pagerduty.com/service: portfolio-core-alert
+  platform.owner: platform-engineering
+  deployment.strategy: progressive-delivery
+  observability.enabled: "true"
 
-# ==========================================
-# 2. RESOURCES (THE BASE COMPONENTS)
-# ==========================================
-# ক্লিন আর্কিটেকচার অনুযায়ী কোর মেটেরিয়ালগুলো বেস থেকে ইমপোর্ট করা
 resources:
   - ../../base/deployment.yaml
   - ../../base/service.yaml
   - ../../base/ingress.yaml
   - ../../cluster-addons/hpa.yaml
-  - ../../cluster-addons/calico-network-policy.yaml
+  - ../../cluster-addons/network-policy.yaml
+  - ../../cluster-addons/pdb.yaml
 
-# ==========================================
-# 3. DYNAMIC CONFIG GENERATION (IMMUTABLE)
-# ==========================================
-# L15 Secret: ConfigMap/Secret পরিবর্তন হলে পড যেন অটো-রিস্টার্ট (Rolling Update) নেয়
 configMapGenerator:
-  - name: application-runtime-spec
+  - name: application-runtime-config
     behavior: merge
     literals:
       - NODE_ENV=production
       - LOG_LEVEL=info
       - ENABLE_TRACING=true
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger-collector.monitoring:4317
+      - OTEL_SERVICE_NAME=ultrafaang-api
     files:
       - configs/app-config.json
       - configs/feature-flags.yaml
 
 secretGenerator:
-  - name: secure-vault-credentials
-    behavior: create
-    type: Opaque
-    # প্রোডাকশনে এগুলো HashiCorp Vault বা AWS Secrets Manager থেকে ExternalSecrets দিয়ে আসে,
-    # তবে Kustomize লেভেলে সেফটি ফলব্যাক জেনারেটরের ব্লুপ্রিন্ট এটি।
-    envs:
-      - secrets/prod-env.secret
+  - name: runtime-placeholder
+    literals:
+      - MANAGED_BY=external-secret-operator
 
-# ==========================================
-# 4. ADVANCED PATCHES (CLEAN ARCHITECTURE OVERRIDES)
-# ==========================================
-# কোনো বেস ফাইল নষ্ট না করে প্রোডাকশন-স্পেসিফিক পলিসি ইনজেক্ট করা
 patches:
-  # প্যাচ ১: প্রোডাকশনের জন্য গ্যারান্টিড রিসোর্স লিমিট এবং নোড অ্যাফিনিটি পুশ করা
+
   - target:
       kind: Deployment
       name: ultragod-fullstack-core
@@ -69,48 +51,46 @@ patches:
       - op: replace
         path: /spec/replicas
         value: 12
-      - op: add
-        path: /spec/template/spec/nodeSelector
-        value:
-          topology.kubernetes.io/zone: us-east-1a
-          instance-type: c6i.2xlarge
-      - op: add
-        path: /spec/template/spec/tolerations
-        value:
-          - key: "dedicated"
-            operator: "Equal"
-            value: "ultragod-pool"
-            effect: "NoSchedule"
 
-  # প্যাচ ২: ইনগ্রেস ফাইলে প্রোডাকশন ক্লাউডফ্লেয়ার/রুট৫৩ এর TLS এবং সার্টিফিকেট ম্যানেজার যুক্ত করা
+      - op: add
+        path: /spec/template/spec/topologySpreadConstraints
+        value:
+          - maxSkew: 1
+            topologyKey: topology.kubernetes.io/zone
+            whenUnsatisfiable: DoNotSchedule
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: ultragod-fullstack
+
+      - op: replace
+        path: /spec/template/spec/terminationGracePeriodSeconds
+        value: 90
+
+
   - target:
       kind: Ingress
       name: ultragod-ingress
     patch: |-
-      - op: replace
-        path: /metadata/annotations/cert-manager.io~1cluster-issuer
-        value: "letsencrypt-production"
       - op: add
+        path: /metadata/annotations
+        value:
+          cert-manager.io/cluster-issuer: letsencrypt-production
+          nginx.ingress.kubernetes.io/ssl-redirect: "true"
+
+      - op: replace
         path: /spec/tls
         value:
           - hosts:
               - portfolio.ultragod.dev
-            secretName: ultrafaang-tls-cert
+            secretName: ultrafaang-production-tls
 
-# ==========================================
-# 5. CONTAINER IMAGE MANAGEMENT (ZERO DRIFT)
-# ==========================================
-# CI/CD পাইপলাইন থেকে ইমেজ ট্যাগ চেঞ্জ না করে সরাসরি ইমিউটেবল SHA দিয়ে লক করা
 images:
   - name: ultrafaang-registry.io/godmode/portfolio-api
     newName: ultrafaang-registry.io/godmode/portfolio-api
-    newTag: v2.4.1-stable
     digest: sha256:dca71234567890abcdef1234567890abcdef1234567890abcdef1234567890
 
-# ==========================================
-# 6. VALIDATION & GENERATOR OPTIONS
-# ==========================================
 generatorOptions:
-  disableNameSuffixHash: false # ট্র্যাকিং এবং রোলব্যাকের সুবিধার জন্য হ্যাশ অন রাখা হয়েছে
+  disableNameSuffixHash: false
   labels:
-    generator: kustomize-v5
+    managed-by: kustomize
+    environment: production
