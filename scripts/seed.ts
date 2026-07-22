@@ -6,7 +6,6 @@ const prisma = new PrismaClient({
       ? ["query", "error", "warn"]
       : ["error"],
 });
-
 const environment =
   process.env.NODE_ENV ?? "development";
 
@@ -18,7 +17,6 @@ const seedRegistry = {
       role: "ADMIN",
     },
   ],
-
   projects: [
     {
       title: "UltraFAANG Portfolio",
