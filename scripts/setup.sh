@@ -89,7 +89,6 @@ summary() {
 }
 main() {
   log "Starting project bootstrap"
-
   validate_project
   check_node
   setup_pnpm
