@@ -1,49 +1,41 @@
 import { ZodError } from "zod";
 
 
-const VALIDATION_STATUS = {
+const VALIDATION_STATUS = Object.freeze({
   FAILED: "validation_failed",
-};
+});
 
 
-const formatValidationErrors = (
-  errors = [],
-) =>
-  errors.map((error) => ({
-    field: error.path.join("."),
-    message: error.message,
+const formatValidationErrors = (errors = []) =>
+  errors.map(({ path, message }) => ({
+    field: path.join("."),
+    message,
   }));
 
 
-export const isValidationError = (
-  error,
-) =>
-  error instanceof ZodError;
+export const isValidationError = (error) =>
+  error instanceof ZodError ||
+  error?.name === "ZodError";
 
 
+export const createValidationError = (error) => {
 
-export const createValidationError = (
-  error,
-) => {
-
-  if (!isValidationError(error)) {
-    return {
-      status: VALIDATION_STATUS.FAILED,
-      message: "Validation failed",
-      errors: [],
-    };
-  }
+  const errors = isValidationError(error)
+    ? formatValidationErrors(
+        error.issues ?? error.errors,
+      )
+    : [];
 
 
   return {
     status: VALIDATION_STATUS.FAILED,
     message: "Validation failed",
-    errors: formatValidationErrors(
-      error.errors,
-    ),
+    data: null,
+    meta: null,
+    errors,
+    timestamp: new Date().toISOString(),
   };
 };
-
 
 
 export const validateSchema = (
@@ -51,43 +43,40 @@ export const validateSchema = (
   payload,
 ) => {
 
-  const result =
-    schema.safeParse(payload);
+  const result = schema.safeParse(payload);
 
 
   if (!result.success) {
+
     return {
       success: false,
       error: createValidationError(
         result.error,
       ),
     };
+
   }
 
 
   return {
     success: true,
     data: result.data,
+    error: null,
   };
 };
 
 
-
-export const assertValid = (
+export const validateOrThrow = (
   schema,
   payload,
-) => {
+) =>
+  schema.parse(payload);
 
-  return schema.parse(
-    payload,
-  );
-
-};
 
 
 export default {
   isValidationError,
   createValidationError,
   validateSchema,
-  assertValid,
+  validateOrThrow,
 };
