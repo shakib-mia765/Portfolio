@@ -52,7 +52,6 @@ jobs:
     uses: ./.github/workflows/sdk-generation-prerelease.yml
   deployment:
     name: Production Deployment
-
     needs:
       - ci
       - security
