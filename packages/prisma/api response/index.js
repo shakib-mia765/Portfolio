@@ -3,7 +3,6 @@ const RESPONSE_STATUS = {
   ERROR: "error",
 };
 
-
 const createResponse = ({
   status,
   message,
@@ -18,8 +17,6 @@ const createResponse = ({
   errors,
   timestamp: new Date().toISOString(),
 });
-
-
 export const apiSuccess = ({
   message = "Request completed successfully",
   data = null,
@@ -31,8 +28,6 @@ export const apiSuccess = ({
     data,
     meta,
   });
-
-
 export const apiError = ({
   message = "Something went wrong",
   errors = null,
@@ -43,11 +38,8 @@ export const apiError = ({
     status: RESPONSE_STATUS.ERROR,
     message,
     data,
-    meta,
-    errors,
+    meta,    errors,
   });
-
-
 export const paginatedResponse = ({
   data = [],
   page = 1,
@@ -65,32 +57,23 @@ export const paginatedResponse = ({
       },
     },
   });
-
-
 export const validationError = (errors = []) =>
   apiError({
     message: "Validation failed",
     errors,
   });
-
-
 export const notFoundError = (resource = "Resource") =>
   apiError({
     message: `${resource} not found`,
   });
-
-
 export const unauthorizedError = () =>
   apiError({
     message: "Unauthorized access",
   });
-
-
 export const forbiddenError = () =>
   apiError({
     message: "Forbidden action",
   });
-
 
 export default {
   apiSuccess,
