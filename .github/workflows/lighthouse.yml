@@ -10,122 +10,79 @@ on:
       - "package.json"
       - "pnpm-lock.yaml"
       - "vite.config.*"
-
   push:
     branches:
       - main
-
   workflow_dispatch:
-
-
 permissions:
   contents: read
   pull-requests: write
-
-
 concurrency:
   group: lighthouse-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
-
 env:
   NODE_VERSION: "20"
   PNPM_VERSION: "9"
   LIGHTHOUSE_URL: "http://localhost:4173"
-
-
 jobs:
-
   lighthouse:
-
     name: Web Performance Quality Gate
-
     runs-on: ubuntu-latest
-
     timeout-minutes: 25
-
-
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
           fetch-depth: 1
-
-
       - name: Setup Node.js
         uses: actions/setup-node@1e60f62b7d7d4f9f8c9e9e7e7c8e5d1c5e4a8b9a
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
-
-
       - name: Enable pnpm
         shell: bash
         run: |
           corepack enable
           corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
-
-
       - name: Install dependencies
         shell: bash
         run: |
           pnpm install --frozen-lockfile
-
-
       - name: Build production application
         shell: bash
         run: |
           pnpm build
-
-
       - name: Start production preview
         shell: bash
         run: |
           pnpm preview \
             --host 0.0.0.0 \
             > preview.log 2>&1 &
-
           echo $! > server.pid
-
-
       - name: Application readiness check
         shell: bash
         run: |
           set -euo pipefail
-
           for attempt in {1..30}; do
-
             if curl -fsS "${LIGHTHOUSE_URL}" > /dev/null; then
               echo "Application ready"
               exit 0
             fi
-
             echo "Waiting application startup..."
             sleep 2
-
           done
-
-
           echo "Application failed health check"
           cat preview.log
           exit 1
-
-
       - name: Run Lighthouse CI
         uses: treosh/lighthouse-ci-action@v12
         with:
           urls: |
             ${{ env.LIGHTHOUSE_URL }}
-
           runs: 3
-
           uploadArtifacts: true
-
           temporaryPublicStorage: true
-
-
       - name: Cleanup application server
         if: always()
         shell: bash
@@ -133,7 +90,6 @@ jobs:
           if [ -f server.pid ]; then
             kill "$(cat server.pid)" || true
           fi
-
 
       - name: Performance Quality Report
         if: always()
