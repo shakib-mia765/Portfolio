@@ -6,21 +6,17 @@ on:
     types:
       - labeled
       - unlabeled
-
 permissions:
   contents: read
-
 concurrency:
   group: sdk-rc-${{ github.ref }}
   cancel-in-progress: true
-
 jobs:
   check-branch:
     name: Validate Release Branch
     runs-on: ubuntu-latest
     permissions:
       contents: read
-
     steps:
       - name: Ensure openapi-prerelease branch
         shell: bash
@@ -29,21 +25,15 @@ jobs:
             echo "Workflow only runs on openapi-prerelease branch"
             exit 1
           fi
-
-
   compute-version:
     name: Compute RC Version
     needs:
       - check-branch
-
     runs-on: ubuntu-latest
-
     permissions:
       contents: read
-
     outputs:
       version: ${{ steps.version.outputs.value }}
-
     steps:
       - name: Checkout release branch
         uses: actions/checkout@v5
@@ -51,36 +41,24 @@ jobs:
           ref: openapi-prerelease
           fetch-depth: 0
           persist-credentials: false
-
-
       - name: Install yq
         shell: bash
         run: |
           curl -fsSL \
           https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64 \
           -o yq
-
           sudo install yq /usr/local/bin/yq
-
-
       - name: Calculate RC version
         id: version
         shell: bash
         run: |
           set -euo pipefail
-
           CURRENT=$(yq -r '.python.version' .speakeasy/gen.yaml)
-
           BASE=$(echo "$CURRENT" \
           | sed -E 's/^([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
-
           echo "Current version: $CURRENT"
           echo "Base version: $BASE"
-
-
           git fetch --tags --quiet || true
-
-
           tag_exists() {
             git ls-remote --tags --refs origin \
             | awk '{print $2}' \
@@ -89,8 +67,6 @@ jobs:
               -e "$1" \
               -e "v$1"
           }
-
-
           if git ls-remote --tags --refs origin \
           | awk '{print $2}' \
           | sed 's|refs/tags/||' \
@@ -99,53 +75,35 @@ jobs:
             echo "Existing RC version detected"
           else
             IFS='.' read -r major minor patch <<< "$BASE"
-
             patch=$((patch + 1))
-
             BASE="${major}.${minor}.${patch}"
-
             echo "New RC base created: $BASE"
           fi
-
-
           PREFIX="${BASE}rc"
           RC=1
-
-
           while tag_exists "${PREFIX}${RC}"
           do
             echo "Tag exists: ${PREFIX}${RC}"
             RC=$((RC + 1))
           done
-
-
           VERSION="${PREFIX}${RC}"
-
           echo "Final RC version: ${VERSION}"
-
           echo "value=${VERSION}" >> "$GITHUB_OUTPUT"
-
-
-
   generate:
     name: Generate SDK
-
     needs:
       - compute-version
-
     permissions:
       contents: write
       checks: write
       pull-requests: write
       statuses: write
-
     uses: speakeasy-api/sdk-generation-action/.github/workflows/workflow-executor.yaml@v1
-
     with:
       force: true
       mode: pr
       set_version: ${{ needs.compute-version.outputs.version }}
-
+      
     secrets:
       github_access_token: ${{ secrets.GITHUB_TOKEN }}
       pypi_token: ${{ secrets.PYPI_TOKEN }}
