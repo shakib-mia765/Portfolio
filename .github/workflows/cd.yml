@@ -112,11 +112,9 @@ jobs:
         run: |
           kubectl rollout status deployment/app \
           --timeout=300s
-
       - name: Production health check
         run: |
           kubectl get pods
-
 
       - name: Deployment summary
         run: |
