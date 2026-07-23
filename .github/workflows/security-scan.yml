@@ -5,307 +5,166 @@ on:
     branches:
       - main
       - develop
-
   pull_request:
     branches:
       - main
       - develop
-
   schedule:
     - cron: "0 3 * * 1"
-
   workflow_dispatch:
-
-
 permissions:
   contents: read
   security-events: write
-
-
 concurrency:
   group: security-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
-
 env:
   NODE_VERSION: "20"
   PNPM_VERSION: "9"
   TRIVY_SEVERITY: "HIGH,CRITICAL"
-
-
 jobs:
-
   dependency-audit:
-
     name: Dependency Vulnerability Scan
-
     runs-on: ubuntu-latest
-
     timeout-minutes: 15
-
-
     permissions:
       contents: read
-
-
     steps:
-
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
-
-
       - name: Setup Node
         uses: actions/setup-node@1e60f62b7d7d4f9f8c9e9e7e7c8e5d1c5e4a8b9a
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
-
-
       - name: Setup pnpm
         run: |
           corepack enable
           corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
-
-
       - name: Install dependencies
         run: |
           pnpm install --frozen-lockfile
-
-
       - name: Audit dependencies
         run: |
           pnpm audit --audit-level high
-
-
-
   dependency-review:
-
     name: Dependency Policy Review
-
     if: github.event_name == 'pull_request'
-
     runs-on: ubuntu-latest
-
     permissions:
       contents: read
-
-
     steps:
-
       - name: Dependency review
         uses: actions/dependency-review-action@v4
-
-
-
   codeql:
-
     name: Advanced SAST Analysis
-
     runs-on: ubuntu-latest
-
     timeout-minutes: 30
-
-
     permissions:
       actions: read
       contents: read
       security-events: write
-
-
     strategy:
-
       fail-fast: false
-
       matrix:
-
         language:
           - javascript-typescript
           - python
-
-
     steps:
-
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-
-
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
           queries: security-extended
-
-
       - name: Analyze CodeQL
         uses: github/codeql-action/analyze@v3
-
-
-
   secret-security:
-
     name: Secret Detection
-
     runs-on: ubuntu-latest
-
     timeout-minutes: 15
-
-
     permissions:
       contents: read
-
-
     steps:
-
       - name: Checkout history
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
-
-
       - name: Run Gitleaks
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
-
   container-security:
-
     name: Container Vulnerability Scan
-
     runs-on: ubuntu-latest
-
     timeout-minutes: 20
-
-
     permissions:
       contents: read
       security-events: write
-
-
     steps:
-
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-
-
       - name: Build image
         run: |
           docker build \
           -t portfolio:${{ github.sha }} .
-
-
       - name: Trivy Scan
-
         uses: aquasecurity/trivy-action@0.28.0
-
         with:
-
           image-ref: portfolio:${{ github.sha }}
-
           severity: ${{ env.TRIVY_SEVERITY }}
-
           format: sarif
-
           output: trivy-results.sarif
-
-
       - name: Upload Trivy Results
-
         uses: github/codeql-action/upload-sarif@v3
-
         with:
-
           sarif_file: trivy-results.sarif
-
-
-
   infrastructure-security:
-
     name: Terraform Security Scan
-
     runs-on: ubuntu-latest
-
     timeout-minutes: 15
-
-
     permissions:
       contents: read
-
-
     steps:
-
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-
-
       - name: Checkov Terraform Scan
-
         uses: bridgecrewio/checkov-action@v12
-
         with:
-
           directory: infra/
-
           framework: terraform
-
-
-
   security-report:
-
     name: Security Evidence Report
-
-
     needs:
-
       - dependency-audit
       - dependency-review
       - codeql
       - secret-security
       - container-security
       - infrastructure-security
-
-
     if: always()
-
-
     runs-on: ubuntu-latest
-
-
     steps:
-
-
       - name: Generate evidence report
-
         run: |
-
           mkdir -p reports
-
-
           cat <<EOF > reports/security-summary.txt
-
           Security Pipeline Evidence
-
           Dependency Audit: Completed
           Dependency Review: Completed
           SAST Analysis: Completed
           Secret Detection: Completed
           Container Security: Completed
           Infrastructure Security: Completed
-
+          
           Commit:
           ${{ github.sha }}
-
           EOF
-
-
-
       - name: Upload Security Evidence
-
         uses: actions/upload-artifact@v4
-
         with:
 
           name: security-evidence
