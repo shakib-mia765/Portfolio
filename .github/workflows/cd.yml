@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-
   workflow_dispatch:
     inputs:
       environment:
@@ -14,71 +13,45 @@ on:
         options:
           - staging
           - production
-
-
 permissions:
   contents: read
-
-
 concurrency:
   group: deployment-${{ github.ref }}
   cancel-in-progress: false
-
-
 env:
   NODE_VERSION: "20"
   PNPM_VERSION: "9"
-
-
 jobs:
-
   build:
     name: Build Immutable Artifact
     runs-on: ubuntu-latest
-
     outputs:
       version: ${{ steps.metadata.outputs.version }}
-
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
-
-
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
-
-
       - name: Setup pnpm
         run: |
           corepack enable
           corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
-
-
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-
       - name: Build application
         run: pnpm build
-
-
       - name: Generate deployment metadata
         id: metadata
         shell: bash
         run: |
           VERSION=$(git rev-parse --short HEAD)
-
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-
           echo "Deployment version: ${VERSION}"
-
-
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -87,102 +60,58 @@ jobs:
           path: |
             dist
             .next
-
-
-
   deploy-staging:
-
     name: Deploy Staging
-
     needs:
       - build
-
     runs-on: ubuntu-latest
-
-
     environment:
       name: staging
-
-
     permissions:
       contents: read
-
-
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v5
-
-
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: app-${{ needs.build.outputs.version }}
-
-
       - name: Deploy Kubernetes staging
         shell: bash
         run: |
           kubectl apply \
           -k infra/k8s/overlays/staging
-
-
       - name: Wait for rollout
         run: |
           kubectl rollout status deployment/app \
           --timeout=180s
-
-
       - name: Verify deployment health
         run: |
           kubectl get pods
-
-
-
   deploy-production:
-
     name: Deploy Production
-
     needs:
       - deploy-staging
-
-
     if: github.event.inputs.environment == 'production'
-
-
     runs-on: ubuntu-latest
-
-
     environment:
       name: production
-
-
     permissions:
       contents: read
-
-
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v5
-
-
       - name: Download artifact
         uses: actions/download-artifact@v4
-
-
       - name: Deploy Kubernetes production
         shell: bash
         run: |
           kubectl apply \
           -k infra/k8s/overlays/production
-
-
       - name: Verify rollout
         run: |
           kubectl rollout status deployment/app \
           --timeout=300s
-
 
       - name: Production health check
         run: |
