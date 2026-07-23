@@ -5,12 +5,10 @@ on:
     branches:
       - main
       - develop
-
   pull_request:
     branches:
       - main
       - develop
-
   workflow_dispatch:
     inputs:
       pipeline:
@@ -23,61 +21,41 @@ on:
           - ci
           - security
           - release
-
-
 permissions:
   contents: read
-
-
 concurrency:
   group: platform-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
-
 jobs:
-
   ci:
     name: Engineering Quality Pipeline
-
     if: |
       github.event_name != 'workflow_dispatch' ||
       inputs.pipeline == 'all' ||
       inputs.pipeline == 'ci'
-
     uses: ./.github/workflows/ci.yml
-
-
   security:
     name: Security Engineering Pipeline
-
     if: |
       github.event_name != 'workflow_dispatch' ||
       inputs.pipeline == 'all' ||
       inputs.pipeline == 'security'
-
     uses: ./.github/workflows/security-scan.yml
-
-
   sdk:
     name: SDK Release Automation
-
     if: |
       github.event_name == 'workflow_dispatch' &&
       (
         inputs.pipeline == 'all' ||
         inputs.pipeline == 'release'
       )
-
     uses: ./.github/workflows/sdk-generation-prerelease.yml
-
-
   deployment:
     name: Production Deployment
 
     needs:
       - ci
       - security
-
     if: |
       github.ref == 'refs/heads/main' &&
       (
