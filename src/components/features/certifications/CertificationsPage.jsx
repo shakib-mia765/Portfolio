@@ -301,7 +301,7 @@ export default function CertificationsPage() {
                 placeholder="Search certifications, issuers or skills"
                 className="w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-sm outline-none transition focus:border-emerald-400"
               />
-
+              
               <div className="mt-4 flex flex-wrap gap-2">
                 {tracks.map((item) => (
                   <button
