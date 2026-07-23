@@ -15,7 +15,6 @@ suite('Postgres connection pool', () => {
       max: MAX_CONNECTIONS,
       application_name: `portfolio-test-${process.pid}`,
     });
-
     await pool.query('SELECT 1');
   });
   afterAll(async () => {
@@ -30,7 +29,6 @@ suite('Postgres connection pool', () => {
     expect(result.rows[0]?.database).toEqual(expect.any(String));
     expect(result.rows[0]?.user).toEqual(expect.any(String));
   });
-
   it('releases checked-out clients back to the pool', async () => {
     const client = await pool.connect();
     try {
@@ -43,7 +41,6 @@ suite('Postgres connection pool', () => {
     } finally {
       client.release();
     }
-
     expect(pool.idleCount).toBeGreaterThanOrEqual(1);
   });
   it('respects the configured connection limit', async () => {
@@ -60,7 +57,6 @@ suite('Postgres connection pool', () => {
       clients.forEach((client) => client.release());
     }
   });
-
   it('isolates and rolls back transactional writes', async () => {
     const client = await pool.connect();
     const value = randomUUID();
@@ -74,7 +70,6 @@ suite('Postgres connection pool', () => {
       const result = await client.query<{ value: string }>(
         'SELECT value FROM pool_test',
       );
-
       expect(result.rows[0]?.value).toBe(value);
       await client.query('ROLLBACK');
     } finally {
@@ -90,7 +85,6 @@ suite('Postgres connection pool', () => {
     const result = await pool.query<{ healthy: number }>(
       'SELECT 1::int AS healthy',
     );
-
     expect(result.rows[0]?.healthy).toBe(1);
   });
   it('handles concurrent work without leaking clients', async () => {
@@ -101,7 +95,7 @@ suite('Postgres connection pool', () => {
           .then(({ rows }) => rows[0]?.value),
       ),
     );
-
+    
     expect(values).toEqual(Array.from({ length: 12 }, (_, index) => index));
     expect(pool.waitingCount).toBe(0);
     expect(pool.totalCount).toBeLessThanOrEqual(MAX_CONNECTIONS);
