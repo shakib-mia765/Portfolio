@@ -1,131 +1,268 @@
-/**
- * @file NodeExpressIngress.spec.ts
- * @package tests/integration/gateway
- * @description Principle-Level Ultra-FAANG Network Ingress & API Contract Testing Engine.
- * @architecture Isomorphic HTTP Ingress Isolation / Defensive Security Assertions
- * @framework Jest / Vitest with Supertest
- */
+import type { Express } from 'express';
+import request, { type Response } from 'supertest';
+import { beforeAll, describe, expect, it } from 'vitest';
+import { createApp } from '../../src/components/server.js';
 
-import request from 'supertest';
-import express, { Express, Request, Response, NextFunction } from 'express';
-import helmet from 'helmet';
-import cors from 'cors';
+const STATUS = {
+  OK: 200,
+  BAD_REQUEST: 400,
+  NOT_FOUND: 404,
+  METHOD_NOT_ALLOWED: 405,
+  PAYLOAD_TOO_LARGE: 413,
+  INTERNAL_SERVER_ERROR: 500,
+} as const;
+const PATH = {
+  health: '/health',
+  contact: '/api/contact',
+  missing: '/__integration__/missing',
+} as const;
+const REQUEST_ID_HEADER = 'x-request-id';
+const REQUEST_ID = 'integration-request-01';
+const JSON_CONTENT_TYPE = /^application\/json\b/i;
+const VALID_REQUEST_ID = /^[a-zA-Z0-9._:-]{8,128}$/;
+type ErrorBody = {
+  success?: boolean;
+  error?: {
+    code?: string;
+    message?: string;
+    requestId?: string;
+  };
+};
+type HealthBody = {
+  status?: string;
+  timestamp?: string;
+  uptime?: number;
+};
+function expectJson(response: Response): void {
+  expect(response.headers['content-type']).toMatch(JSON_CONTENT_TYPE);
+}
+function expectNoSensitiveData(response: Response): void {
+  const body = JSON.stringify(response.body).toLowerCase();
+  for (const value of [
+    'node_modules',
+    'database_url',
+    'authorization',
+    'bearer ',
+    'password',
+    '"stack"',
+  ]) {
+    expect(body).not.toContain(value);
+  }
+}
+function expectRequestId(response: Response): string {
+  const requestId = response.headers[REQUEST_ID_HEADER];
+  expect(requestId).toBeTypeOf('string');
+  expect(requestId).toMatch(VALID_REQUEST_ID);
 
-describe('🌐 Enterprise Network Ingress Pipeline - Node/Express Server Node Gateway Suite', () => {
-  let targetAppKernel: Express;
-
-  // Immutable Gateway System Parameter Blueprints
-  const CORE_GATEWAY_CONFIGS = Object.freeze({
-    MOCK_VALID_JWT: 'Bearer faang_crypto_token_secure_flow_2026',
-    ALLOWED_ORIGIN: 'https://portfolio.ultragod.dev',
-    RATE_LIMIT_CEILING: '100'
+  return requestId;
+}
+describe('Node Express ingress', () => {
+  let app: Express;
+  beforeAll(async () => {
+    process.env.NODE_ENV = 'test';
+    const application = await createApp();
+    if (
+      typeof application !== 'function' ||
+      typeof application.use !== 'function'
+    ) {
+      throw new TypeError(
+        'createApp() must return a configured Express application.',
+      );
+    }
+    app = application;
   });
-
-  // =========================================================================
-  // 1. ISOLATED TARGET ENVIRONMENT SANDBOX PROVISIONING
-  // =========================================================================
-  beforeAll(() => {
-    targetAppKernel = express();
-
-    // Inject Production-Grade Security Shields (Mimicking Live Main Server)
-    targetAppKernel.use(helmet());
-    targetAppKernel.use(cors({ origin: CORE_GATEWAY_CONFIGS.ALLOWED_ORIGIN }));
-    targetAppKernel.use(express.json());
-
-    // Mock Ingress Global Middleware: Rate Limiting & Auth Interceptor Headers
-    targetAppKernel.use((req: Request, res: Response, next: NextFunction) => {
-      res.setHeader('X-RateLimit-Limit', CORE_GATEWAY_CONFIGS.RATE_LIMIT_CEILING);
-
-      if (req.path.startsWith('/api/v1/secure') && req.headers.authorization !== CORE_GATEWAY_CONFIGS.MOCK_VALID_JWT) {
-        res.status(401).json({ error: 'Unauthorized Ingress Attempt: Token validation failed.' });
-        return;
+  describe('health', () => {
+    it('returns a valid machine-readable health response', async () => {
+      const response = await request(app)
+        .get(PATH.health)
+        .set('accept', 'application/json')
+        .expect(STATUS.OK);
+      expectJson(response);
+      expect(response.body).toEqual(
+        expect.objectContaining<HealthBody>({
+          status: expect.stringMatching(/^(ok|healthy|ready)$/i),
+        }),
+      );
+      if (response.body.timestamp !== undefined) {
+        expect(Date.parse(String(response.body.timestamp))).not.toBeNaN();
       }
-      next();
-    });
-
-    // Mock Core Domain Routes (Serving 5 Integrated Macro Engines Data States)
-    targetAppKernel.get('/api/v1/health', (_req: Request, res: Response) => {
-      res.status(200).json({ status: 'HEALTHY', clusterId: 'cluster-node-001' });
-    });
-
-    targetAppKernel.post('/api/v1/secure/projects', (req: Request, res: Response) => {
-      const { title, slug } = req.body;
-      if (!title || !slug) {
-        res.status(400).json({ error: 'Validation Fault: Title and Slug tokens are required.' });
-        return;
+      if (response.body.uptime !== undefined) {
+        expect(response.body.uptime).toEqual(expect.any(Number));
+        expect(response.body.uptime).toBeGreaterThanOrEqual(0);
       }
-      res.status(201).json({ confirmed: true, data: { title, slug } });
     });
-
-    // Global Error Handling Interceptor Rule (Fault-Tolerant Engine Isolation)
-    targetAppKernel.use((_err: Error, _req: Request, res: Response, _next: NextFunction) => {
-      res.status(500).json({ error: 'Internal Server Error: Ingress Pipeline Unhandled Exception.' });
+    it('does not expose internal runtime details', async () => {
+      const response = await request(app)
+        .get(PATH.health)
+        .expect(STATUS.OK);
+      expectNoSensitiveData(response);
+      expect(response.body).not.toHaveProperty('environment');
+      expect(response.body).not.toHaveProperty('process');
+      expect(response.body).not.toHaveProperty('memory');
+      expect(response.body).not.toHaveProperty('dependencies.database.url');
     });
   });
+  describe('request correlation', () => {
+    it('preserves a valid inbound request ID', async () => {
+      const response = await request(app)
+        .get(PATH.health)
+        .set(REQUEST_ID_HEADER, REQUEST_ID)
+        .expect(STATUS.OK);
 
-  // =========================================================================
-  // 2. HTTP INGRESS LAYER INTEGRATION SPECIFICATIONS
-  // =========================================================================
+      expect(response.headers[REQUEST_ID_HEADER]).toBe(REQUEST_ID);
+    });
+    it('generates a request ID when none is supplied', async () => {
+      const response = await request(app)
+        .get(PATH.health)
+        .expect(STATUS.OK);
+      expectRequestId(response);
+    });
+    it('replaces an invalid inbound request ID', async () => {
+      const invalidRequestId = 'invalid request id with spaces';
 
-  it('🔒 Should enforce rigid HTTP Security Policies via Helmet and CORS origins', async () => {
-    // Act
-    const response = await request(targetAppKernel)
-      .get('/api/v1/health')
-      .set('Origin', CORE_GATEWAY_CONFIGS.ALLOWED_ORIGIN);
-
-    // Assert: Verifying structural enterprise security headers
-    expect(response.status).toBe(200);
-    expect(response.headers['access-control-allow-origin']).toBe(CORE_GATEWAY_CONFIGS.ALLOWED_ORIGIN);
-    expect(response.headers['x-dns-prefetch-control']).toBeDefined();
-    expect(response.headers['x-frame-options']).toBe('SAMEORIGIN');
-    expect(response.headers['x-ratelimit-limit']).toBe(CORE_GATEWAY_CONFIGS.RATE_LIMIT_CEILING);
+      const response = await request(app)
+        .get(PATH.health)
+        .set(REQUEST_ID_HEADER, invalidRequestId)
+        .expect(STATUS.OK);
+      expect(expectRequestId(response)).not.toBe(invalidRequestId);
+    });
+    it('assigns unique IDs to concurrent requests', async () => {
+      const responses = await Promise.all(
+        Array.from({ length: 12 }, () =>
+          request(app).get(PATH.health).expect(STATUS.OK),
+        ),
+      );
+      const requestIds = responses.map(expectRequestId);
+      expect(new Set(requestIds).size).toBe(requestIds.length);
+    });
   });
-
-  it('🚫 Should block unauthorized ingress traffic trying to hit secure domain layers without valid signature', async () => {
-    // Act & Assert: Invalid Token Signature Injection
-    const maliciousAttempt = await request(targetAppKernel)
-      .post('/api/v1/secure/projects')
-      .set('Authorization', 'Bearer invalid_malicious_token_hash')
-      .send({ title: 'Hacked Node', slug: 'malicious' });
-
-    expect(maliciousAttempt.status).toBe(401);
-    expect(maliciousAttempt.body.error).toContain('Unauthorized Ingress Attempt');
+  describe('security headers', () => {
+    it('applies baseline HTTP security headers', async () => {
+      const response = await request(app)
+        .get(PATH.health)
+        .expect(STATUS.OK);
+      expect(response.headers['x-content-type-options']).toBe('nosniff');
+      expect(response.headers['x-frame-options']).toMatch(
+        /^(DENY|SAMEORIGIN)$/,
+      );
+      expect(response.headers['referrer-policy']).toBeDefined();
+      expect(response.headers['content-security-policy']).toBeDefined();
+      expect(response.headers['x-powered-by']).toBeUndefined();
+    });
+    it('does not allow credentialed wildcard CORS', async () => {
+      const untrustedOrigin = 'https://untrusted.example.test';
+      const response = await request(app)
+        .options(PATH.health)
+        .set('origin', untrustedOrigin)
+        .set('access-control-request-method', 'GET');
+      const origin = response.headers['access-control-allow-origin'];
+      const credentials =
+        response.headers['access-control-allow-credentials'];
+      expect(origin === '*' && credentials === 'true').toBe(false);
+      if (origin !== undefined) {
+        expect(origin).not.toBe(untrustedOrigin);
+      }
+    });
   });
+  describe('request parsing', () => {
+    it('returns 400 for malformed JSON', async () => {
+      const response = await request(app)
+        .post(PATH.contact)
+        .set('content-type', 'application/json')
+        .send('{"name":"Shakib","message":')
+        .expect(STATUS.BAD_REQUEST);
 
-  it('✅ Should grant authorization and process requests smoothly when valid cryptographic signatures are passed', async () => {
-    // Arrange
-    const enterpriseProjectPayload = {
-      title: 'UltraGod AI Platform Framework',
-      slug: 'autonomous-ai-agent-engine'
-    };
-
-    // Act
-    const dynamicResponse = await request(targetAppKernel)
-      .post('/api/v1/secure/projects')
-      .set('Authorization', CORE_GATEWAY_CONFIGS.MOCK_VALID_JWT)
-      .send(enterpriseProjectPayload);
-
-    // Assert
-    expect(dynamicResponse.status).toBe(201);
-    expect(dynamicResponse.body.confirmed).toBe(true);
-    expect(dynamicResponse.body.data.slug).toBe(enterpriseProjectPayload.slug);
+      expectJson(response);
+      expectNoSensitiveData(response);
+      expect(response.body).toEqual(
+        expect.objectContaining<ErrorBody>({
+          success: false,
+          error: expect.objectContaining({
+            code: expect.stringMatching(
+              /^(INVALID_JSON|MALFORMED_JSON|BAD_REQUEST)$/i,
+            ),
+            message: expect.any(String),
+          }),
+        }),
+      );
+    });
+    it('returns 413 for an oversized request body', async () => {
+      const response = await request(app)
+        .post(PATH.contact)
+        .set('content-type', 'application/json')
+        .send({
+          name: 'Integration Test',
+          email: 'integration@example.test',
+          message: 'x'.repeat(1_100_000),
+        })
+        .expect(STATUS.PAYLOAD_TOO_LARGE);
+      expectJson(response);
+      expectNoSensitiveData(response);
+      expect(response.body).toEqual(
+        expect.objectContaining<ErrorBody>({
+          success: false,
+          error: expect.objectContaining({
+            code: expect.stringMatching(
+              /^(PAYLOAD_TOO_LARGE|BODY_TOO_LARGE|REQUEST_TOO_LARGE)$/i,
+            ),
+          }),
+        }),
+      );
+    });
   });
+  describe('routing', () => {
+    it('returns a stable JSON error for an unknown route', async () => {
+      const response = await request(app)
+        .get(PATH.missing)
+        .set(REQUEST_ID_HEADER, REQUEST_ID)
+        .expect(STATUS.NOT_FOUND);
+      expectJson(response);
+      expectNoSensitiveData(response);
+      expect(response.body).toEqual(
+        expect.objectContaining<ErrorBody>({
+          success: false,
+          error: expect.objectContaining({
+            code: expect.stringMatching(
+              /^(NOT_FOUND|ROUTE_NOT_FOUND|RESOURCE_NOT_FOUND)$/i,
+            ),
+            message: expect.any(String),
+          }),
+        }),
+      );
+      if (response.body.error?.requestId !== undefined) {
+        expect(response.body.error.requestId).toBe(REQUEST_ID);
+      }
+    });
+    it('does not return the frontend HTML fallback for an API miss', async () => {
+      const response = await request(app)
+        .get(PATH.missing)
+        .set('accept', 'text/html')
+        .expect(STATUS.NOT_FOUND);
+      expect(response.headers['content-type']).not.toMatch(/^text\/html\b/i);
+      expect(response.text).not.toContain('<!DOCTYPE html>');
+    });
+    it('does not accept unsupported health methods', async () => {
+      const response = await request(app).post(PATH.health).send({});
+      expect([
+        STATUS.NOT_FOUND,
+        STATUS.METHOD_NOT_ALLOWED,
+      ]).toContain(response.status);
+      expect(response.status).not.toBe(STATUS.OK);
+      expect(response.status).not.toBe(STATUS.INTERNAL_SERVER_ERROR);
+    });
+  });
+  describe('resilience', () => {
+    it('remains healthy after processing malformed input', async () => {
+      await request(app)
+        .post(PATH.contact)
+        .set('content-type', 'application/json')
+        .send('{"broken":')
+        .expect(STATUS.BAD_REQUEST);
 
-  it('❌ Should reject execution gracefully with a 400 Bad Request error when payload keys are missing', async () => {
-    // Arrange: Malformed request schema definition
-    const corruptedPayload = {
-      title: 'Broken Payload Node Structure'
-      // Missing 'slug' token parameter on purpose
-    };
-
-    // Act
-    const runtimeResponse = await request(targetAppKernel)
-      .post('/api/v1/secure/projects')
-      .set('Authorization', CORE_GATEWAY_CONFIGS.MOCK_VALID_JWT)
-      .send(corruptedPayload);
-
-    // Assert
-    expect(runtimeResponse.status).toBe(400);
-    expect(runtimeResponse.body.error).toContain('Validation Fault');
+      const response = await request(app)
+        .get(PATH.health)
+        .expect(STATUS.OK);
+      expect(response.body.status).toMatch(/^(ok|healthy|ready)$/i);
+    });
   });
 });
