@@ -195,7 +195,6 @@ function CertificationsPage() {
 function CertificationDetailsPage() {
   const { certificationId } = useParams();
   const item = CERTIFICATIONS.find(certificate => certificate.id === certificationId);
-
   if (!item) {
     return (
       <div className="mx-auto max-w-xl rounded-3xl border border-slate-800 bg-slate-900/60 p-10 text-center">
