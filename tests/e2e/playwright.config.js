@@ -1,98 +1,156 @@
-/**
- * @file playwright.config.ts
- * @package tests/e2e/configs
- * @description Principle-Level Ultra-FAANG Distributed E2E Orchestration Engine.
- * @architecture Isomorphic Monorepo Project Matrix / Automated Ephemeral Lifecycle Control
- * @framework Playwright Test Engine
- */
-
 import { defineConfig, devices } from '@playwright/test';
 
-// Global Hard-Ceiling Telemetry Parameters
-const GLOBAL_TIMEOUT_BLUEPRINTS = Object.freeze({
-  SINGLE_TEST_TIMEOUT_MS: 45000,     // 45s hard timeout limit per test case
-  GLOBAL_SUITE_TIMEOUT_MS: 900000,  // 15 minutes max CI/CD duration barrier
-  NAVIGATION_TIMEOUT_MS: 15000       // 15s low-latency ingress network budget
-});
+const DEFAULT_PORT = 5173;
+const DEFAULT_HOST = '127.0.0.1';
+const isCI = Boolean(process.env.CI);
+const port = Number.parseInt(
+  process.env.PLAYWRIGHT_PORT ?? String(DEFAULT_PORT),
+  10,
+);
+
+if (!Number.isInteger(port) || port < 1 || port > 65_535) {
+  throw new Error(
+    `Invalid PLAYWRIGHT_PORT "${process.env.PLAYWRIGHT_PORT}". ` +
+      'Expected an integer between 1 and 65535.',
+  );
+}
+const host = process.env.PLAYWRIGHT_HOST?.trim() || DEFAULT_HOST;
+
+const localBaseURL = `http://${host}:${port}`;
+const baseURL = process.env.PLAYWRIGHT_BASE_URL?.trim() || localBaseURL;
+
+const shouldStartLocalServer =
+  !process.env.PLAYWRIGHT_BASE_URL && process.env.PLAYWRIGHT_SKIP_SERVER !== '1';
 
 export default defineConfig({
-  // Core Test Suite Root Discovery Map pointing to the specs folder
-  testDir: '../specs',
-  
-  // Timeout Controls (FAANG Scalability Guardrails)
-  timeout: GLOBAL_TIMEOUT_BLUEPRINTS.SINGLE_TEST_TIMEOUT_MS,
-  globalTimeout: GLOBAL_TIMEOUT_BLUEPRINTS.GLOBAL_SUITE_TIMEOUT_MS,
-  expect: {
-    timeout: 8000 // Assertion timeout limit for elements hydration
-  },
+  testDir: '.',
+  testMatch: ['**/*.e2e.{js,jsx,ts,tsx}', '**/*.spec.{js,jsx,ts,tsx}'],
 
-  // Parallelism & Resource Throttle Management
+  outputDir: '../../test-results/playwright/artifacts',
+  forbidOnly: isCI,
   fullyParallel: true,
-  workers: process.env.CI ? 4 : '50%', // 4 hard workers in CI thread-pool, 50% CPU allocation on local bare-metal
-  
-  // Resiliency Strategy Against Flaky Network Contexts
-  retries: process.env.CI ? 2 : 1,
-  
-  // Control Console Ingress Logging Output Formats
-  reporter: [
-    ['html', { outputFolder: '../reports/html-report', open: 'never' }],
-    ['json', { outputFile: '../reports/telemetry-metrics.json' }],
-    ['list']
-  ],
+  retries: isCI ? 2 : 0,
+  workers: process.env.PLAYWRIGHT_WORKERS || (isCI ? 2 : undefined),
 
-  // Isomorphic Browser Context Configurations
-  use: {
-    baseURL: process.env.APP_BASE_URL || 'https://app.ultragod.dev',
-    actionTimeout: 10000,
-    navigationTimeout: GLOBAL_TIMEOUT_BLUEPRINTS.NAVIGATION_TIMEOUT_MS,
-    
-    // Telemetry Capturing Rules for Forensic Failure Diagnosis
-    trace: 'retain-on-failure',
-    screenshot: 'only-on-failure',
-    video: 'on-first-retry',
-    
-    // Absolute Security Layer Mapping Rules
-    ignoreHTTPSErrors: true,
-    bypassCSP: false // Maintain Content Security Policy boundaries during black-box testing
+  timeout: 45_000,
+
+  expect: {
+    timeout: 10_000,
+    toHaveScreenshot: {
+      animations: 'disabled',
+      caret: 'hide',
+      scale: 'css',
+    },
   },
 
-  // MULTI-TENANT MONOREPO PROJECT TARGET MATRIX (The 5 Macro Application Nodes)
+  reporter: isCI
+    ? [
+        ['line'],
+        [
+          'html',
+          {
+            outputFolder: '../../test-results/playwright/report',
+            open: 'never',
+          },
+        ],
+        [
+          'junit',
+          {
+            outputFile:
+              '../../test-results/playwright/results/playwright.xml',
+          },
+        ],
+      ]
+    : [
+        ['list'],
+        [
+          'html',
+          {
+            outputFolder: '../../test-results/playwright/report',
+            open: 'never',
+          },
+        ],
+      ],
+
+  use: {
+    baseURL,
+    trace: isCI ? 'retain-on-failure' : 'on-first-retry',
+    screenshot: 'only-on-failure',
+    video: isCI ? 'retain-on-failure' : 'off',
+
+    actionTimeout: 15_000,
+    navigationTimeout: 30_000,
+
+    locale: 'en-US',
+    timezoneId: 'UTC',
+    colorScheme: 'light',
+    reducedMotion: 'reduce',
+
+    ignoreHTTPSErrors: false,
+    viewport: {
+      width: 1440,
+      height: 900,
+    },
+
+    serviceWorkers: 'block',
+
+    contextOptions: {
+      strictSelectors: true,
+    },
+  },
   projects: [
     {
-      name: 'production-desktop-chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
-    {
-      name: 'production-desktop-webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-    {
-      name: 'production-mobile-safari',
-      use: { ...devices['iPhone 14 Pro Max'] },
-    },
-    {
-      name: 'subsystem-ecommerce-isolated',
-      testMatch: /.*ecommerce.*\.e2e\.ts/,
+      name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        storageState: '../utils/states/ecommerce-auth-state.json'
+        viewport: {
+          width: 1440,
+          height: 900,
+        },
       },
     },
     {
-      name: 'subsystem-ai-engine-isolated',
-      testMatch: /.*ai-engine.*\.e2e\.ts/,
+      name: 'firefox',
       use: {
-        ...devices['Desktop Chrome'],
-        permissions: ['clipboard-read', 'clipboard-write']
+        ...devices['Desktop Firefox'],
+        viewport: {
+          width: 1440,
+          height: 900,
+        },
       },
-    }
+    },
+    {
+      name: 'webkit',
+      use: {
+        ...devices['Desktop Safari'],
+        viewport: {
+          width: 1440,
+          height: 900,
+        },
+      },
+    },
+    {
+      name: 'mobile-chromium',
+      use: {
+        ...devices['Pixel 7'],
+      },
+    },
+    {
+      name: 'mobile-webkit',
+      use: {
+        ...devices['iPhone 15'],
+      },
+    },
   ],
+  webServer: shouldStartLocalServer
+    ? {
+        command: `npm run dev -- --host ${host} --port ${port}`,
+        url: localBaseURL,
+        reuseExistingServer: !isCI,
 
-  // AUTOMATED EPHEMERAL LOCAL HOST GATEWAY INFRASTRUCTURE
-  webServer: process.env.CI ? undefined : {
-    command: 'npm run infrastructure:up', // Triggers docker-compose orchestration pipeline
-    url: 'http://localhost:8080/api/v1/health',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120000 // 2-minute hard limit for local boot sequences
-  }
+        timeout: 120_000,
+        stdout: isCI ? 'pipe' : 'ignore',
+        stderr: 'pipe',
+      }
+    : undefined,
 });
