@@ -66,7 +66,6 @@ suite('Postgres connection pool', () => {
         'CREATE TEMP TABLE pool_test(value text) ON COMMIT DROP',
       );
       await client.query('INSERT INTO pool_test(value) VALUES ($1)', [value]);
-
       const result = await client.query<{ value: string }>(
         'SELECT value FROM pool_test',
       );
