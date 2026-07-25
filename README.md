@@ -1,37 +1,55 @@
-Staff Fullstack Engineer | 9+ Years of Professional Experience
+# Staff Fullstack Engineer Portfolio
 
-A production-oriented portfolio showcasing modern full-stackengineering, cloud-native architecture, DevOps automation, testingstrategy, infrastructure as code, and scalable frontend/backendapplications.
+A production-oriented monorepo showcasing modern full-stack engineering, 
+cloud-native architecture, DevOps automation, testing strategy, IaC, and 
+scalable frontend/backend applications.
 
-Professional Summary
+**9+ Years of Professional Software Engineering Experience**
 
-I am a Staff Fullstack Engineer with 9+ years of professionalsoftware engineering experience designing, building, and maintainingscalable web platforms and distributed systems.
+### Live Demo
+[portfolio-link.com] <!-- Apnar deploy link bosaben -->
 
-Core Expertise
+### Tech Stack
+**Frontend**: React, Vite, Next.js, TypeScript, Tailwind  
+**Backend**: Node.js, Python, Django, FastAPI  
+**Database**: PostgreSQL, Prisma, Redis  
+**Cloud & DevOps**: Docker, Kubernetes, Terraform, AWS, GitHub Actions  
+**Testing**: Playwright, Jest, E2E, Integration, Unit  
+**Other**: WebSockets, REST, GraphQL, CI/CD, Security Scanning
 
-Full Stack Engineering
+### Repository Highlights
+| Area | What’s Inside |
+| --- | --- |
+| **Infrastructure** | `infra/k8s/` - K8s manifests, `infra/terraform/` - IaC |
+| **Automation** | `.github/workflows/` - CI, CD, Security Scan, Lighthouse, SDK Gen |
+| **Frontend** | `src/features/` - Modular, Component-driven architecture |
+| **Backend** | `packages/prisma/` - Shared DB layer, API validation |
+| **Testing** | `tests/` - Unit, Integration, E2E with Playwright |
+| **Case Studies** | `src/features/caseStudies/` - Real-world scaling problems & solutions |
 
-React, Vite, Next.js
+### Engineering Principles
+1.  **Clean Architecture** - Separation of Concerns
+2.  **Infrastructure as Code** - Everything versioned
+3.  **Security First** - Automated security scans in CI
+4.  **Quality Gates** - Lint, Test, Lighthouse before deploy
+5.  **Scalability** - Built for 50K+ RPM
 
-Python, Django, FastAPI
+### Engineering Workflow
+`Develop` → `Test` → `Lint` → `Security Scan` → `Lighthouse` → `Build` → `Deploy`
 
-Node.js
+### Core Expertise
+- Full Stack Engineering: React, Next.js, Django, FastAPI, Node.js
+- System Design & Performance Engineering
+- Cloud-Native: Docker & Kubernetes
+- DevOps & Automation: Terraform, CI/CD
+- Testing & Quality Engineering
 
-PostgreSQL, Prisma
+### Professional Experience
+9+ years designing production-ready applications, modular frontend systems, 
+scalable backend services, infrastructure automation, and cloud-native deployments.
 
-Docker & Kubernetes
-
-Terraform
-
-CI/CD Automation
-
-Performance Engineering
-
-System Design
-
-Testing & Quality Engineering
-
-Repository Structure
-
+### License
+MIT
 Portfolio/
 |.github/
 └── workflows/
@@ -245,162 +263,3 @@ Portfolio/
 ├── package-lock.json
 ├── package.json
 └── vite.config.js 
-
-Portfolio/
-├── .github/workflows/
-├── infra/
-├── packages/
-├── public/
-├── scripts/
-├── src/
-├── tests/
-├── package.json
-└── README.md
-
-Repository Highlights
-
-Infrastructure
-
-Kubernetes manifests
-
-Terraform configuration
-
-Deployment orchestration
-
-Automation
-
-CI
-
-CD
-
-Security Scan
-
-Lighthouse
-
-SDK Generation
-
-Platform Orchestrator
-
-Frontend
-
-React
-
-Vite
-
-Modular Feature Architecture
-
-Component-driven UI
-
-Feature Modules
-
-Case Studies
-
-Certifications
-
-Experience
-
-Projects
-
-Skills
-
-Testing
-
-Unit Tests
-
-Integration Tests
-
-End-to-End Tests
-
-Engineering Principles
-
-Clean Architecture
-
-Separation of Concerns
-
-Reusable Components
-
-Infrastructure as Code
-
-Security First
-
-Automated Quality Gates
-
-Maintainability
-
-Scalability
-
-Technology Stack
-
-React
-
-Vite
-
-JavaScript
-
-Node.js
-
-Prisma
-
-Docker
-
-Kubernetes
-
-Terraform
-
-GitHub Actions
-
-Playwright
-
-Engineering Workflow
-
-Develop
-
-Test
-
-Lint
-
-Security Scan
-
-Lighthouse
-
-Build
-
-Deploy
-
-Professional Experience
-
-9+ Years of Professional Software Engineering Experience
-
-Experience includes designing production-ready applications, modularfrontend systems, scalable backend services, infrastructure automation,CI/CD pipelines, testing strategies, and cloud-native deployments.
-
-Folder Overview
-
-.github/workflows --- Automation pipelines
-
-infra --- Kubernetes and Terraform
-
-packages --- Shared Prisma utilities
-
-public --- Static assets
-
-scripts --- Deployment and setup scripts
-
-src --- Application source code
-
-tests --- Unit, integration, and E2E testing
-
-Goals
-
-Production-quality engineering
-
-Scalable architecture
-
-Maintainable codebase
-
-Automated deployment
-
-Enterprise-ready practices
-
-License
-
-MIT
