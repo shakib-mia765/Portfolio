@@ -1,129 +1,51 @@
 {
-  "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "Ultra-FAANG Monorepo Principle Architecture Core Blueprint",
-  
-  /* =========================================================================
-   * 1. PRINCIPLE-LEVEL COMPILATION KERNEL & ENVIRONMENT TARGETS
-   * ========================================================================= */
   "compilerOptions": {
-    "target": "ESNext",
+    "target": "ES2022",
     "lib": [
-      "DOM", 
-      "DOM.Iterable", 
-      "ESNext", 
-      "ESNext.AsyncIterable"
+      "DOM",
+      "DOM.Iterable",
+      "ES2022"
     ],
-    "allowJs": true,
-    "checkJs": true,
-    "maxNodeModuleJsDepth": 3,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "resolvePackageJsonExports": true,
-    "resolvePackageJsonImports": true,
-
-    /* =========================================================================
-     * 2. HIGH-PERFORMANCE FAANG-SCALE MODULE RESOLUTION CORE ENGINE
-     * ========================================================================= */
     "module": "ESNext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
+    "moduleResolution": "Bundler",
     "jsx": "preserve",
+    "allowJs": true,
+    "checkJs": false,
+    "strict": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
     "incremental": true,
-    "tsBuildInfoFile": "./.tsbuildinfo/tsconfig.tsbuildinfo",
-    "moduleDetection": "force",
-    "newLine": "lf",
-
-    /* =========================================================================
-     * 3. HIGH-DENSITY DOMAIN PATH MAPPING ALIASES (Clean Architecture Layering)
-     * ========================================================================= */
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "useUnknownInCatchVariables": true,
     "baseUrl": ".",
     "paths": {
-      /* Shared System Gateways & Global Service Ingress */
-      "@/*": ["./src/*"],
-      "@core/ingress/*": ["./src/core/ingress/*"],
-      "@services/*": ["./src/services/*"],
-      "@shared/types/*": ["./src/shared/types/*"],
-      "@theme/tailwind/*": ["./src/shared/styles/tailwind/*"],
-
-      /* Project Node 01: Enterprise E-Commerce Platform Bundle */
-      "@project/ecommerce/frontend/*": ["./apps/ecommerce/web/*"],
-      "@project/ecommerce/backend/*": ["./apps/ecommerce/api_django/*"],
-      "@project/ecommerce/hooks/*": ["./apps/ecommerce/web/hooks/*"],
-
-      /* Project Node 02: Distinguished Dev Portfolio System Registry */
-      "@project/portfolio/core/*": ["./apps/portfolio/src/*"],
-      "@project/portfolio/ui/*": ["./apps/portfolio/components/*"],
-
-      /* Project Node 03: High-Throughput Analytics & Dashboard App */
-      "@project/dashboard/analytics/*": ["./apps/dashboard/metrics/*"],
-      "@project/dashboard/store/*": ["./apps/dashboard/redux-slices/*"],
-
-      /* Project Node 04: Mission-Critical Socket/gRPC Chat Application */
-      "@project/chat/stream/*": ["./apps/chat-app/realtime/*"],
-      "@project/chat/pipeline/*": ["./apps/chat-app/controllers/*"],
-
-      /* Project Node 05: Next-Gen Autonomous AI + Fullstack Intelligence Engine */
-      "@project/ai/models/*": ["./apps/ai-engine/agent-logic/*"],
-      "@project/ai/bridge/*": ["./apps/ai-engine/django-router/*"],
-
-      /* Infrastructure, Containerization & Persistence Layer Guards */
-      "@infra/prisma/*": ["./infrastructure/database/prisma/*"],
-      "@infra/docker/specs/*": ["./infrastructure/containerization/docker/*"],
-      "@infra/cloud/deploy/*": ["./infrastructure/cloud-provider/*"]
+      "@/*": [
+        "./src/*"
+      ]
     },
-
-    /* =========================================================================
-     * 4. ZERO TECHNICAL DEBT ARCHITECTURE GUARDRAILS (Hyper-Strict Static Analysis)
-     * ========================================================================= */
-    "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
-    "strictPropertyInitialization": true,
-    "noImplicitThis": true,
-    "alwaysStrict": true,
-    
-    /* Strict Quality Gates Against Code Smells & Leaks */
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
-    "noPropertyAccessFromIndexSignature": true,
-    "allowUnreachableCode": false,
-    "allowUnusedLabels": false,
-    "exactOptionalPropertyTypes": true
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
   },
-
-  /* =========================================================================
-   * 5. ISOMORPHIC SCOPING & MONOREPO COMPILATION BOUNDARIES
-   * ========================================================================= */
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    "**/*.js",
-    "**/*.jsx",
-    ".next/types/**/*.ts",
-    "src/services/RegistryIngress.js",
-    "src/services/SchemaValidator.js",
-    "src/server.js"
+    ".next/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
-    "dist",
     ".next",
-    "out",
-    "build",
-    "coverage",
-    ".docker",
-    "**/.venv/*",
-    "**/__pycache__/*",
-    "**/migrations/*"
+    "dist",
+    "coverage"
   ]
 }
