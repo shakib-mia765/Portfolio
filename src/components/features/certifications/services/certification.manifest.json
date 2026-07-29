@@ -1,210 +1,132 @@
 {
-    "systemMetadata": {
-        "clusterOwner": "Shakib Mia",
-        "architectureVersion": "L10.9.42",
-        "targetEngine": "Docker Containerd K8s Mesh",
-        "lastUnifiedEpoch": 1783152000000
+  "metadata": {
+    "owner": "Shakib Mia",
+    "schemaVersion": "1.0.0",
+    "architectureVersion": "L10.9.42",
+    "targetPlatform": ["Docker", "containerd", "Kubernetes"],
+    "lastUpdatedAt": "2026-07-04T00:00:00.000Z",
+    "totalCertifications": 12
+  },
+  "certifications": [
+    {
+      "id": "duke-docker-kubernetes-data-engineering",
+      "provider": "Coursera",
+      "title": "Virtualization, Docker, and Kubernetes for Data Engineering",
+      "issuer": "Duke University",
+      "issuedAt": "2026-06",
+      "expiresAt": "2035-04",
+      "credentialId": "3CCYPNBIEK26",
+      "skills": ["Docker", "Kubernetes", "Virtualization", "Data Engineering", "PostgreSQL", "MySQL"]
     },
-    "ingressFeed": [
-        {
-            "providerRef": "COURSERA_NODE",
-            "course_title": "Virtualization, Docker, and Kubernetes for Data Engineering",
-            "vendor": "Duke University",
-            "timestamps": {
-                "given": "Jun 2026",
-                "deadLine": "Apr 2035"
-            },
-            "signature_hex": "3CCYPNBIEK26",
-            "tags": [
-                "Docker",
-                "Kubernetes",
-                "Virtualization",
-                "Data Engineering",
-                "PostgreSQL",
-                "MySQL"
-            ]
-        },
-        {
-            "providerRef": "GOOGLE_INTERNAL",
-            "job_ai_cert": "Accelerate Your Job Search with AI",
-            "authority_brand": "Google",
-            "date_matrix": {
-                "start": "Jun 2026",
-                "end": "Jun 2036"
-            },
-            "token_id": "8NSHZKDSCL16",
-            "competencies": [
-                "AI Workflows",
-                "Prompt Engineering",
-                "Google Leadership",
-                "Google Project Management"
-            ]
-        },
-        {
-            "providerRef": "AWS_CONSOLE",
-            "aws_track_name": "AWS Cloud Practitioner Essentials",
-            "signer": "Amazon Web Services",
-            "timeline_meta": {
-                "issued": "Jun 2026",
-                "expires": "Sep 2036"
-            },
-            "aws_credential_id": "HTPJ07B98G54",
-            "skills_associated": [
-                "AWS Cloud",
-                "Cloud Infrastructure",
-                "Systems Scale",
-                "Cloud Economics"
-            ]
-        },
-        {
-            "providerRef": "IBM_ACADEMY",
-            "assessment_name": "Full Stack Software Developer Assessment",
-            "org": "IBM",
-            "duration": {
-                "issued_at": "May 2026",
-                "validation_end": "Jun 2036"
-            },
-            "id_string": "VH0MLV842PP4",
-            "skills_list": [
-                "Assessment",
-                "Architecture Validation",
-                "Enterprise Design Templates",
-                "LeetCode 130+ Solving"
-            ]
-        },
-        {
-            "providerRef": "IBM_ACADEMY",
-            "assessment_name": "Introduction to Software Engineering",
-            "org": "IBM",
-            "duration": {
-                "issued_at": "Jun 2026",
-                "validation_end": "Sep 2036"
-            },
-            "id_string": "HZ28FS7TZXR1",
-            "skills_list": [
-                "SDLC Paradigms",
-                "Agile Core Engineering",
-                "Design Patterns",
-                "Clean Code Architecture"
-            ]
-        },
-        {
-            "providerRef": "MICROSOFT_LEARN",
-            "capstone_project_title": "Full-Stack Developer Capstone Project",
-            "owner": "Microsoft",
-            "dates": {
-                "creation": "Jun 2026",
-                "expiration": "Jun 2036"
-            },
-            "ms_uuid": "8BOCR2L2NPME",
-            "stack_capabilities": [
-                "Microsoft Next.js",
-                "System Integration",
-                "Production Architecture",
-                "Prisma",
-                "React.js"
-            ]
-        },
-        {
-            "providerRef": "IBM_ACADEMY",
-            "assessment_name": "Getting Started with Git and GitHub",
-            "org": "IBM",
-            "duration": {
-                "issued_at": "Jun 2026",
-                "validation_end": "Jul 2036"
-            },
-            "id_string": "SGT8CVAL48OQ",
-            "skills_list": [
-                "Git",
-                "GitHub Actions",
-                "VCS Automations"
-            ]
-        },
-        {
-            "providerRef": "META_BLUEPRINT",
-            "api_module_name": "APIs",
-            "brand_owner": "Meta",
-            "lifecycle": {
-                "origin": "Jun 2026",
-                "terminal": "Aug 2036"
-            },
-            "meta_id": "EJH8P9B7D9PG",
-            "tech_array": [
-                "RESTful APIs",
-                "API Design Engine",
-                "Secure Ingress Routing"
-            ]
-        },
-        {
-            "providerRef": "COURSERA_NODE",
-            "course_title": "Microservice Architectures",
-            "vendor": "Vanderbilt University",
-            "timestamps": {
-                "given": "Jun 2026",
-                "deadLine": "Oct 2036"
-            },
-            "signature_hex": "ENB1OVY7NEOM",
-            "tags": [
-                "Distributed Clusters",
-                "Microservices Topology",
-                "Event Streams",
-                "Docker",
-                "Kubernetes"
-            ]
-        },
-        {
-            "providerRef": "META_BLUEPRINT",
-            "api_module_name": "Django Web Framework",
-            "brand_owner": "Meta",
-            "lifecycle": {
-                "origin": "Jun 2026",
-                "terminal": "Permanent"
-            },
-            "meta_id": "MT4OBCGZSXC3",
-            "tech_array": [
-                "Python Engine",
-                "Django MVC",
-                "Prisma",
-                "PostgreSQL",
-                "MySQL"
-            ]
-        },
-        {
-            "providerRef": "IBM_ACADEMY",
-            "assessment_name": "Developing Back-End Apps with Node.js and Express",
-            "org": "IBM",
-            "duration": {
-                "issued_at": "Jun 2026",
-                "validation_end": "Jan 2036"
-            },
-            "id_string": "UNNXMXRIIO69",
-            "skills_list": [
-                "Node.js",
-                "Express.js Engine",
-                "Asynchronous Pipelines",
-                "PostgreSQL",
-                "MySQL",
-                "Redux.js"
-            ]
-        },
-        {
-            "providerRef": "IBM_ACADEMY",
-            "assessment_name": "Developing Front-End Apps with React",
-            "org": "IBM",
-            "duration": {
-                "issued_at": "Jun 2026",
-                "validation_end": "Jun 2026"
-            },
-            "id_string": "CB7P5PSKFESH",
-            "skills_list": [
-                "React.js",
-                "Redux.js",
-                "google project management",
-                "google leadership",
-                "ui",
-                "ux design",
-                "Prisma"
-            ]
-        }
-    ]
+    {
+      "id": "google-ai-job-search",
+      "provider": "Google",
+      "title": "Accelerate Your Job Search with AI",
+      "issuer": "Google",
+      "issuedAt": "2026-06",
+      "expiresAt": "2036-06",
+      "credentialId": "8NSHZKDSCL16",
+      "skills": ["AI Workflows", "Prompt Engineering", "Leadership", "Project Management"]
+    },
+    {
+      "id": "aws-cloud-practitioner-essentials",
+      "provider": "AWS",
+      "title": "AWS Cloud Practitioner Essentials",
+      "issuer": "Amazon Web Services",
+      "issuedAt": "2026-06",
+      "expiresAt": "2036-09",
+      "credentialId": "HTPJ07B98G54",
+      "skills": ["AWS Cloud", "Cloud Infrastructure", "Scalability", "Cloud Economics"]
+    },
+    {
+      "id": "ibm-full-stack-developer-assessment",
+      "provider": "IBM",
+      "title": "Full Stack Software Developer Assessment",
+      "issuer": "IBM",
+      "issuedAt": "2026-05",
+      "expiresAt": "2036-06",
+      "credentialId": "VH0MLV842PP4",
+      "skills": ["Technical Assessment", "Architecture Validation", "Enterprise Design", "Problem Solving"]
+    },
+    {
+      "id": "ibm-introduction-software-engineering",
+      "provider": "IBM",
+      "title": "Introduction to Software Engineering",
+      "issuer": "IBM",
+      "issuedAt": "2026-06",
+      "expiresAt": "2036-09",
+      "credentialId": "HZ28FS7TZXR1",
+      "skills": ["SDLC", "Agile Engineering", "Design Patterns", "Clean Architecture"]
+    },
+    {
+      "id": "microsoft-full-stack-capstone",
+      "provider": "Microsoft Learn",
+      "title": "Full-Stack Developer Capstone Project",
+      "issuer": "Microsoft",
+      "issuedAt": "2026-06",
+      "expiresAt": "2036-06",
+      "credentialId": "8BOCR2L2NPME",
+      "skills": ["Next.js", "React", "Prisma", "System Integration", "Production Architecture"]
+    },
+    {
+      "id": "ibm-git-github",
+      "provider": "IBM",
+      "title": "Getting Started with Git and GitHub",
+      "issuer": "IBM",
+      "issuedAt": "2026-06",
+      "expiresAt": "2036-07",
+      "credentialId": "SGT8CVAL48OQ",
+      "skills": ["Git", "GitHub", "GitHub Actions", "Version Control"]
+    },
+    {
+      "id": "meta-apis",
+      "provider": "Meta",
+      "title": "APIs",
+      "issuer": "Meta",
+      "issuedAt": "2026-06",
+      "expiresAt": "2036-08",
+      "credentialId": "EJH8P9B7D9PG",
+      "skills": ["REST APIs", "API Design", "Authentication", "Secure Routing"]
+    },
+    {
+      "id": "vanderbilt-microservice-architectures",
+      "provider": "Coursera",
+      "title": "Microservice Architectures",
+      "issuer": "Vanderbilt University",
+      "issuedAt": "2026-06",
+      "expiresAt": "2036-10",
+      "credentialId": "ENB1OVY7NEOM",
+      "skills": ["Distributed Systems", "Microservices", "Event Streams", "Docker", "Kubernetes"]
+    },
+    {
+      "id": "meta-django-web-framework",
+      "provider": "Meta",
+      "title": "Django Web Framework",
+      "issuer": "Meta",
+      "issuedAt": "2026-06",
+      "expiresAt": null,
+      "credentialId": "MT4OBCGZSXC3",
+      "skills": ["Python", "Django", "REST APIs", "PostgreSQL", "MySQL"]
+    },
+    {
+      "id": "ibm-node-express-backend",
+      "provider": "IBM",
+      "title": "Developing Back-End Apps with Node.js and Express",
+      "issuer": "IBM",
+      "issuedAt": "2026-06",
+      "expiresAt": "2036-01",
+      "credentialId": "UNNXMXRIIO69",
+      "skills": ["Node.js", "Express.js", "Async Programming", "PostgreSQL", "MySQL"]
+    },
+    {
+      "id": "ibm-react-frontend",
+      "provider": "IBM",
+      "title": "Developing Front-End Apps with React",
+      "issuer": "IBM",
+      "issuedAt": "2026-06",
+      "expiresAt": "2026-06",
+      "credentialId": "CB7P5PSKFESH",
+      "skills": ["React", "Redux", "UI Development", "UX Fundamentals", "State Management"]
+    }
+  ]
 }
