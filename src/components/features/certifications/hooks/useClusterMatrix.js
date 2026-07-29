@@ -34,7 +34,6 @@ const useClusterMatrix = (certifications = EMPTY_CERTIFICATIONS) => {
     providers: providers.length,
     advanced: matrix.filter(({ level }) => level === "advanced").length,
   }), [matrix, providers]);
-
   const selectProvider = useCallback(
     (provider = "all") =>
       setActiveProvider(providers.includes(provider) ? provider : "all"),
