@@ -26,8 +26,6 @@
     "useUnknownInCatchVariables": true,
     "baseUrl": ".",
     "paths": {
-      [
-      ]
     },
     "plugins": [
       {
