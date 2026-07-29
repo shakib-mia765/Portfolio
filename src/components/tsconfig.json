@@ -26,8 +26,7 @@
     "useUnknownInCatchVariables": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
+      [
       ]
     },
     "plugins": [
@@ -38,8 +37,6 @@
   },
   "include": [
     "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
     ".next/types/**/*.ts"
   ],
   "exclude": [
