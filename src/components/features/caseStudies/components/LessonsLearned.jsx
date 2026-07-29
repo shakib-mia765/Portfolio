@@ -4,6 +4,7 @@ const DEFAULT_CONTENT = Object.freeze({
   title: "Lessons Learned",
   description: "Insights that improved execution, architecture, and delivery.",
 });
+
 const LessonsLearned = ({ lessons = [], content = DEFAULT_CONTENT }) => {
   const [items, setItems] = useState([]);
   useEffect(() => {
