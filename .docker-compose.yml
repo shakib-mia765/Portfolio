@@ -1,218 +1,91 @@
-# =========================================================================
-# @file docker-compose.yml
-# @description Principle-Level Ultra-FAANG Monorepo Orchestration Engine.
-# @architecture Distributed Microservices Network with Isolated Persistence Layers
-# @systems 5 Application Kernels, 2 Production Databases, 1 Edge Reverse Proxy
-# =========================================================================
-
-version: '3.8'
-
-# Global Networks Map for Cryptographic and Structural Isolation
+name: faang-portfolio-platform
+x-defaults: &defaults
+  restart: unless-stopped
+  init: true
+  security_opt: [no-new-privileges:true]
+  cap_drop: [ALL]
+  logging:
+    driver: json-file
+    options: {max-size: 10m, max-file: "3"}
+x-app: &app
+  <<: *defaults
+  networks: [ingress, persistence]
+  environment: {NODE_ENV: production, LOG_LEVEL: "${LOG_LEVEL:-info}"}
+x-health: &health
+  interval: 15s
+  timeout: 5s
+  retries: 5
+  start_period: 30s
 networks:
-  ingress_edge_network:
-    driver: bridge
-    name: faang_portfolio_ingress_network
-  internal_persistence_network:
-    driver: bridge
-    name: faang_portfolio_storage_network
-    internal: true # বাইরের পৃথিবী থেকে ডাটাবেস নেটওয়ার্ক সম্পূর্ণ ইনসুল্যার/লকড থাকবে
-
-# Persistent Volume Storage Engines
+  ingress: {name: faang_ingress, driver: bridge}
+  persistence: {name: faang_persistence, driver: bridge, internal: true}
 volumes:
-  postgres_enterprise_data:
-    driver: local
-  mysql_enterprise_data:
-    driver: local
-  shared_nginx_cache:
-    driver: local
-
+  postgres_data:
+  mysql_data:
+  nginx_cache:
 services:
-
-  # =========================================================================
-  # CORE EDGE INTELLIGENCE INTERFACE (Reverse Proxy & Load Balancer)
-  # =========================================================================
-  ingress_gateway:
-    image: nginx:alpine
-    container_name: faang_ingress_gateway
-    restart: always
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - shared_nginx_cache:/var/cache/nginx
-    networks:
-      - ingress_edge_network
-    depends_on:
-      - node_ecommerce
-      - node_portfolio
-      - node_dashboard
-      - node_chat
-      - node_ai_engine
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 512M
-
-  # =========================================================================
-  # NODE 01: ENTERPRISE FULLSTACK E-COMMERCE ENGINE (React, Next, Django, Prisma)
-  # =========================================================================
-  node_ecommerce:
-    build:
-      context: .
-      dockerfile: ./apps/ecommerce/web/Dockerfile
-      target: production
-    container_name: faang_node_ecommerce
-    restart: on-failure:5
-    environment:
-      - NODE_ENV=production
-      - DATABASE_URL=postgresql://postgres:$${POSTGRES_PASSWORD}@storage_postgres:5432/portfolio_db?schema=public
-    deploy:
-      resources:
-        limits:
-          cpus: '1.50'
-          memory: 2GB
-        reservations:
-          memory: 512M
-    networks:
-      - ingress_edge_network
-      - internal_persistence_network
-    depends_on:
-      storage_postgres:
-        condition: service_healthy
-
-  # =========================================================================
-  # NODE 02: DISTINGUISHED DEV PORTFOLIO REGISTRY (React, Next, Node, Express)
-  # =========================================================================
-  node_portfolio:
-    build:
-      context: .
-      dockerfile: ./apps/portfolio/Dockerfile
-    container_name: faang_node_portfolio
-    restart: unless-stopped
-    environment:
-      - NODE_ENV=production
-    deploy:
-      resources:
-        limits:
-          cpus: '1.00'
-          memory: 1GB
-    networks:
-      - ingress_edge_network
-      - internal_persistence_network
-
-  # =========================================================================
-  # NODE 03: HIGH-THROUGHPUT ANALYTICS & DASHBOARD APP (React, Next, Redux)
-  # =========================================================================
-  node_dashboard:
-    build:
-      context: .
-      dockerfile: ./apps/dashboard/Dockerfile
-    container_name: faang_node_dashboard
-    restart: unless-stopped
-    environment:
-      - NODE_ENV=production
-    deploy:
-      resources:
-        limits:
-          cpus: '1.00'
-          memory: 1GB
-    networks:
-      - ingress_edge_network
-      - internal_persistence_network
-
-  # =========================================================================
-  # NODE 04: MISSION-CRITICAL REAL-TIME CHAT APPLICATION (WebSockets/Node)
-  # =========================================================================
-  node_chat:
-    build:
-      context: .
-      dockerfile: ./apps/chat-app/Dockerfile
-    container_name: faang_node_chat
-    restart: always
-    environment:
-      - NODE_ENV=production
-    deploy:
-      resources:
-        limits:
-          cpus: '2.00'
-          memory: 4GB
-    networks:
-      - ingress_edge_network
-      - internal_persistence_network
-
-  # =========================================================================
-  # NODE 05: NEXT-GEN AUTONOMOUS AI + FULLSTACK INTEL HUB (Django REST, Prisma Infra)
-  # =========================================================================
-  node_ai_engine:
-    build:
-      context: .
-      dockerfile: ./apps/ai-engine/Dockerfile
-    container_name: faang_node_ai_engine
-    restart: always
-    environment:
-      - PYTHONUNBUFFERED=1
-      - DATABASE_URL=postgresql://postgres:$${POSTGRES_PASSWORD}@storage_postgres:5432/portfolio_db
-    deploy:
-      resources:
-        limits:
-          cpus: '3.00'
-          memory: 8GB
-    networks:
-      - ingress_edge_network
-      - internal_persistence_network
-    depends_on:
-      storage_postgres:
-        condition: service_healthy
-
-  # =========================================================================
-  # PERSISTENCE CORE: SECURITY HARDENED POSTGRESQL LAYER
-  # =========================================================================
-  storage_postgres:
+  gateway:
+    <<: *defaults
+    image: nginx:1.27-alpine
+    ports: ["${HTTP_PORT:-80}:80", "${HTTPS_PORT:-443}:443"]
+    volumes: ["./infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro", "./infrastructure/nginx/certs:/etc/nginx/certs:ro", "nginx_cache:/var/cache/nginx"]
+    tmpfs: [/var/run, /tmp]
+    networks: [ingress]
+    depends_on: {ecommerce: {condition: service_healthy}, portfolio: {condition: service_healthy}, dashboard: {condition: service_healthy}, chat: {condition: service_healthy}, ai_engine: {condition: service_healthy}}
+    healthcheck: {test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/health || exit 1"], interval: 15s, timeout: 5s, retries: 5}
+    cpus: 0.50
+    mem_limit: 512m
+  ecommerce:
+    <<: *app
+    build: {context: ., dockerfile: apps/ecommerce/web/Dockerfile, target: production}
+    environment: {NODE_ENV: production, PORT: 3000, DATABASE_URL: "postgresql://${POSTGRES_USER:-portfolio_app}:${POSTGRES_PASSWORD:?required}@postgres:5432/${POSTGRES_DB:-portfolio}?schema=public"}
+    expose: ["3000"]
+    depends_on: {postgres: {condition: service_healthy}}
+    healthcheck: {<<: *health, test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/health || exit 1"]}
+    cpus: 1.50
+    mem_limit: 2g
+  portfolio:
+    <<: *app
+    build: {context: ., dockerfile: apps/portfolio/Dockerfile, target: production}
+    environment: {NODE_ENV: production, PORT: 3001}
+    expose: ["3001"]
+    healthcheck: {<<: *health, test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3001/api/health || exit 1"]}
+    cpus: 1.00
+    mem_limit: 1g
+  dashboard:
+    <<: *app
+    build: {context: ., dockerfile: apps/dashboard/Dockerfile, target: production}
+    environment: {NODE_ENV: production, PORT: 3002}
+    expose: ["3002"]
+    healthcheck: {<<: *health, test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3002/api/health || exit 1"]}
+    cpus: 1.00
+    mem_limit: 1g
+  chat:
+    <<: *app
+    build: {context: ., dockerfile: apps/chat-app/Dockerfile, target: production}
+    environment: {NODE_ENV: production, PORT: 3003, DATABASE_URL: "postgresql://${POSTGRES_USER:-portfolio_app}:${POSTGRES_PASSWORD:?required}@postgres:5432/${POSTGRES_DB:-portfolio}?schema=chat"}
+    expose: ["3003"]
+    depends_on: {postgres: {condition: service_healthy}}
+    healthcheck: {<<: *health, test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3003/health || exit 1"]}
+    stop_grace_period: 30s
+    cpus: 2.00
+    mem_limit: 4g
+  ai_engine:
+    <<: *app
+    build: {context: ., dockerfile: apps/ai-engine/Dockerfile, target: production}
+    environment: {PYTHONUNBUFFERED: "1", PORT: 8000, DATABASE_URL: "postgresql://${POSTGRES_USER:-portfolio_app}:${POSTGRES_PASSWORD:?required}@postgres:5432/${POSTGRES_DB:-portfolio}"}
+    expose: ["8000"]
+    depends_on: {postgres: {condition: service_healthy}}
+    healthcheck: {<<: *health, test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8000/health || exit 1"], start_period: 45s}
+    cpus: 3.00
+    mem_limit: 8g
+  postgres:
+    <<: *defaults
     image: postgres:16-alpine
-    container_name: faang_storage_postgres
-    restart: always
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ultra_secure_pass_2026
-      POSTGRES_DB: portfolio_db
-    volumes:
-      - postgres_enterprise_data:/var/lib/postgresql/data
-    networks:
-      - internal_persistence_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    deploy:
-      resources:
-        limits:
-          cpus: '1.00'
-          memory: 2GB
-
-  # =========================================================================
-  # PERSISTENCE CORE: HIGH-READ PERFORMANCE MYSQL ENGINE
-  # =========================================================================
-  storage_mysql:
-    image: mysql:8.0
-    container_name: faang_storage_mysql
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: ultra_secure_pass_2026
-      MYSQL_DATABASE: portfolio_ecommerce
-    volumes:
-      - mysql_enterprise_data:/var/lib/mysql
-    networks:
-      - internal_persistence_network
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-    deploy:
-      resources:
-        limits:
-          cpus: '1.00'
-          memory: 2GB
+    environment: {POSTGRES_USER: "${POSTGRES_USER:-portfolio_app}", POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?required}", POSTGRES_DB: "${POSTGRES_DB:-portfolio}"}
+    volumes: ["postgres_data:/var/lib/postgresql/data", "./infrastructure/postgres/init:/docker-entrypoint-initdb.d:ro"]
+    networks: [persistence]
+    healthcheck: {test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"], interval: 10s, timeout: 5s, retries: 10, start_period: 20s}
+    shm_size: 256m
+    cpus: 1.50
+    mem_limit: 2g
